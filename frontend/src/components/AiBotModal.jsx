@@ -1,7 +1,356 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { Bot, Send, Sparkles, X, Trash2, ArrowLeft, MessageSquare, Zap, Smile, Copy, Check, Plus, Camera, Image, FileText } from 'lucide-react';
+import { 
+  Bot, Send, Sparkles, X, Trash2, ArrowLeft, MessageSquare, Zap, Smile, 
+  Copy, Check, Plus, Camera, Image, FileText, Globe, Search, ChevronDown, 
+  Languages, CheckCircle2 
+} from 'lucide-react';
+
+export const AI_LANGUAGES = [
+  {
+    id: 'auto',
+    name: 'Auto-Detect / Multilingual',
+    nativeName: 'స్వయంచాలకంగా గుర్తించు',
+    flag: '🌐',
+    category: 'Universal',
+    description: 'Replies dynamically matching whatever language you type in',
+    greeting: 'హలో! 👋 AI భాష Auto-Detect కు మార్చబడింది. మీరు ఏ భాషలోనైనా నాతో మాట్లాడవచ్చు! ✨'
+  },
+  {
+    id: 'te',
+    name: 'Telugu',
+    nativeName: 'తెలుగు',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'పూర్తిగా స్వచ్ఛమైన తెలుగు మరియు తెలుగు-ఇంగ్లీష్ సంభాషణలు',
+    greeting: 'నమస్కారం! 🙏 AI భాష తెలుగుగా సెట్ చేయబడింది. మీకు ఎలా సహాయపడగలను? ✨'
+  },
+  {
+    id: 'en',
+    name: 'English',
+    nativeName: 'English',
+    flag: '🌐',
+    category: 'Indian Regional & National',
+    description: 'Clear, comprehensive English for coding, general queries, and assistance',
+    greeting: 'Hello! 👋 AI language has been set to English. How can I assist you today? ✨'
+  },
+  {
+    id: 'hi',
+    name: 'Hindi',
+    nativeName: 'हिन्दी',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'भारत की राजभाषा में सहज और सटीक संवाद',
+    greeting: 'नमस्ते! 🙏 AI की भाषा अब हिन्दी सेट कर दी गई है। मैं आपकी क्या सहायता कर सकता हूँ? ✨'
+  },
+  {
+    id: 'ta',
+    name: 'Tamil',
+    nativeName: 'தமிழ்',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'செம்மொழியான தமிழில் உரையாடுங்கள்',
+    greeting: 'வணக்கம்! 🙏 AI மொழி இப்போது தமிழில் அமைக்கப்பட்டுள்ளது. நான் உங்களுக்கு எவ்வாறு உதவ முடியும்? ✨'
+  },
+  {
+    id: 'kn',
+    name: 'Kannada',
+    nativeName: 'ಕನ್ನಡ',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'ಕನ್ನಡದಲ್ಲಿ ನಿಖರವಾದ ಮತ್ತು ಸ್ಪಷ್ಟವಾದ ಮಾಹಿತಿ',
+    greeting: 'ನಮಸ್ಕಾರ! 🙏 AI ಭಾಷೆಯನ್ನು ಕನ್ನಡಕ್ಕೆ ಹೊಂದಿಸಲಾಗಿದೆ. ನಾನು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಬಹುದು? ✨'
+  },
+  {
+    id: 'ml',
+    name: 'Malayalam',
+    nativeName: 'മലയാളം',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'മലയാളത്തിൽ ലളിതവും വിശദവുമായ മറുപടികൾ',
+    greeting: 'നമസ്കാരം! 🙏 AI ഭാഷ ഇപ്പോൾ മലയാളത്തിൽ സജ്ജീകരിച്ചിരിക്കുന്നു. ഞാൻ നിങ്ങളെ എങ്ങനെ സഹായിക്കാം? ✨'
+  },
+  {
+    id: 'mr',
+    name: 'Marathi',
+    nativeName: 'मराठी',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'मराठीत सोप्या आणि अचूक भाषेत उत्तरे',
+    greeting: 'नमस्कार! 🙏 AI भाषा आता मराठीत सेट केली आहे. मी तुम्हाला कशी मदत करू शकतो? ✨'
+  },
+  {
+    id: 'bn',
+    name: 'Bengali',
+    nativeName: 'বাংলা',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'বাংলায় সহজ ও সুন্দর তথ্য ও উত্তর',
+    greeting: 'নমস্কার! 🙏 AI ভাষা বাংলায় সেট করা হয়েছে। আমি আপনাকে কীভাবে সাহায্য করতে পারি? ✨'
+  },
+  {
+    id: 'gu',
+    name: 'Gujarati',
+    nativeName: 'ગુજરાતી',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'ગુજરાતી ભાષામાં સચોટ અને ઝડપી જવાબો',
+    greeting: 'નમસ્તે! 🙏 AI ભાષા હવે ગુજરાતીમાં સેટ થઈ ગઈ છે. હું તમને કેવી રીતે મદદ કરી શકું? ✨'
+  },
+  {
+    id: 'pa',
+    name: 'Punjabi',
+    nativeName: 'ਪੰਜਾਬੀ',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'ਪੰਜਾਬੀ ਵਿੱਚ ਸਪੱਸ਼ਟ ਅਤੇ ਮਦਦਗਾਰ ਜਾਣਕਾਰੀ',
+    greeting: 'ਸਤਿ ਸ਼੍ਰੀ ਅਕਾਲ! 🙏 AI ਭਾਸ਼ਾ ਪੰਜਾਬੀ ਵਿੱਚ ਸੈੱਟ ਕੀਤੀ ਗਈ ਹੈ। ਮੈਂ ਤੁਹਾਡੀ ਕਿਵੇਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ? ✨'
+  },
+  {
+    id: 'or',
+    name: 'Odia',
+    nativeName: 'ଓଡ଼ିଆ',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'ଓଡ଼ିଆ ଭାଷାରେ ସଠିକ୍ ଏବଂ ସହଜ ଉତ୍ତର',
+    greeting: 'ନମସ୍କାର! 🙏 AI ଭାଷା ଓଡ଼ିଆରେ ସେଟ୍ ହୋଇଛି। ମୁଁ ଆପଣଙ୍କୁ କିପରି ସାହାଯ୍ୟ କରିପାରିବି? ✨'
+  },
+  {
+    id: 'ur',
+    name: 'Urdu',
+    nativeName: 'اردو',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'اردو زبان میں شائستہ اور درست معلومات',
+    greeting: 'السلام علیکم! 🙏 AI زبان اب اردو میں سیٹ کر دی گئی ہے۔ میں آپ کی کیا مدد کر سکتا ہوں؟ ✨'
+  },
+  {
+    id: 'as',
+    name: 'Assamese',
+    nativeName: 'অসমীয়া',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'অসমীয়া ভাষাত সঠিক আৰু স্পষ্ট তথ্য',
+    greeting: 'নমস্কাৰ! 🙏 AI ভাষা অসমীয়াত নিৰ্ধাৰণ কৰা হৈছে। মই আপোনাক কেনেদৰে সহায় কৰিব পাৰোঁ? ✨'
+  },
+  {
+    id: 'sa',
+    name: 'Sanskrit',
+    nativeName: 'संस्कृतम्',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'प्राचीन-भारतीय-संस्कृत-भाषायां संवादः',
+    greeting: 'नमो नमः! 🙏 AI भाषा संस्कृतेन संयोजिता अस्ति। अहं भवतः कथं साहाय्यं कर्तुं शक्नोमि? ✨'
+  },
+  {
+    id: 'kok',
+    name: 'Konkani',
+    nativeName: 'कोंकणी',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'कोंकणी भाशेंत सोपे आनी स्पश्ट जाप',
+    greeting: 'नमस्कार! 🙏 AI भास कोंकणींत सेट जाली. हांव तुका कशी मदत करूं? ✨'
+  },
+  {
+    id: 'mai',
+    name: 'Maithili',
+    nativeName: 'मैथिली',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'मैथिली भाषामे सुगम संवाद',
+    greeting: 'प्रणाम! 🙏 AI केर भाषा मैथिली सेट कएल गेल अछि। हम अहाँक की मद्दति कऽ सकैत छी? ✨'
+  },
+  {
+    id: 'ne',
+    name: 'Nepali',
+    nativeName: 'नेपाली',
+    flag: '🇳🇵',
+    category: 'Indian Regional & National',
+    description: 'नेपाली भाषामा सहज र स्पष्ट उत्तरहरू',
+    greeting: 'नमस्ते! 🙏 AI भाषा नेपालीमा सेट गरिएको छ। म तपाईंलाई कसरी सहयोग गर्न सक्छु? ✨'
+  },
+  {
+    id: 'sd',
+    name: 'Sindhi',
+    nativeName: 'سنڌي / सिन्धी',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'سنڌي ٻوليءَ ۾ واضح جواب',
+    greeting: 'سلام! 🙏 AI ٻولي سنڌي ۾ سيٽ ڪئي وئي آهي. مان توهان جي ڪهڙي مدد ڪري سگهان ٿو؟ ✨'
+  },
+  {
+    id: 'ks',
+    name: 'Kashmiri',
+    nativeName: 'कॉशुर / كٲشُر',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'کٲشُر زبانہِ منٛز جواب',
+    greeting: 'سلام! 🙏 AI زَبان گٔیہِ کٲشُر سیٹ۔ بؤ كِتھ کَن کَرِوہ مَدَتھ؟ ✨'
+  },
+  {
+    id: 'doi',
+    name: 'Dogri',
+    nativeName: 'डोगरी',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'डोगरी भाशा च उत्तर',
+    greeting: 'नमस्ते! 🙏 AI भाशा डोगरी च सेट होई गेई ऐ। मैं तुंदी केह् मदद करी सकना? ✨'
+  },
+  {
+    id: 'mni',
+    name: 'Manipuri / Meitei',
+    nativeName: 'মৈতৈলোন্',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'মৈতৈলোন্দা পাউখুম',
+    greeting: 'খুরুমজরি! 🙏 AI লোন মৈতৈলোন্দা সেৎ তৌরে। ঐহাক্না নহাকপু করম্না মতেং পাংগদগে? ✨'
+  },
+  {
+    id: 'brx',
+    name: 'Bodo',
+    nativeName: 'बर\'',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'बर\' रावजों फिननाय',
+    greeting: 'खुलुमबाय! 🙏 AI रावखौ बर\'आव सेट खालामबाय। आं नोंखौ माबोरै हेफाजाब होनो हागोन? ✨'
+  },
+  {
+    id: 'sat',
+    name: 'Santali',
+    nativeName: 'ᱥᱟᱱᱛᱟᱲᱤ',
+    flag: '🇮🇳',
+    category: 'Indian Regional & National',
+    description: 'ᱥᱟᱱᱛᱟᱲᱤ ᱯᱟᱹᱨᱥᱤ ᱛᱮ ᱛᱮᱞᱟ',
+    greeting: 'ᱡᱚᱦᱟᱨ! 🙏 AI ᱯᱟᱹᱨᱥᱤ ᱫᱚ ᱥᱟᱱᱛᱟᱲᱤ ᱛᱮ ᱥᱮᱴ ᱮᱱᱟ᱾ ᱤᱧ ᱪᱮᱫ ᱞᱮᱠᱟᱧ ᱜᱚᱲᱚ ᱫᱟᱲᱮᱭᱟᱢᱟ? ✨'
+  },
+  {
+    id: 'es',
+    name: 'Spanish',
+    nativeName: 'Español',
+    flag: '🇪🇸',
+    category: 'International',
+    description: 'Respuestas fluidas y precisas en español',
+    greeting: '¡Hola! 👋 El idioma de la IA se ha configurado en español. ¿En qué puedo ayudarte hoy? ✨'
+  },
+  {
+    id: 'fr',
+    name: 'French',
+    nativeName: 'Français',
+    flag: '🇫🇷',
+    category: 'International',
+    description: 'Réponses élégantes et précises en français',
+    greeting: 'Bonjour ! 👋 La langue de l\'IA a été réglée sur le français. Comment puis-je vous aider ? ✨'
+  },
+  {
+    id: 'de',
+    name: 'German',
+    nativeName: 'Deutsch',
+    flag: '🇩🇪',
+    category: 'International',
+    description: 'Klare und strukturierte Antworten auf Deutsch',
+    greeting: 'Hallo! 👋 Die KI-Sprache wurde auf Deutsch eingestellt. Wie kann ich Ihnen helfen? ✨'
+  },
+  {
+    id: 'ar',
+    name: 'Arabic',
+    nativeName: 'العربية',
+    flag: '🇸🇦',
+    category: 'International',
+    description: 'إجابات دقيقة وشاملة باللغة العربية',
+    greeting: 'أهلاً بك! 👋 تم ضبط لغة الذكاء الاصطناعي إلى العربية. كيف يمكنني مساعدتك اليوم؟ ✨'
+  },
+  {
+    id: 'ja',
+    name: 'Japanese',
+    nativeName: '日本語',
+    flag: '🇯🇵',
+    category: 'International',
+    description: '丁寧で正確な日本語のサポート',
+    greeting: 'こんにちは！👋 AIの言語が日本語に設定されました。どのようにお手伝いできますか？✨'
+  },
+  {
+    id: 'ko',
+    name: 'Korean',
+    nativeName: '한국어',
+    flag: '🇰🇷',
+    category: 'International',
+    description: '친절하고 정확한 한국어 답변',
+    greeting: '안녕하세요! 👋 AI 언어가 한국어로 설정되었습니다. 무엇을 도와드릴까요? ✨'
+  },
+  {
+    id: 'zh',
+    name: 'Chinese',
+    nativeName: '中文 (简体)',
+    flag: '🇨🇳',
+    category: 'International',
+    description: '流畅而全面的中文回答',
+    greeting: '你好！👋 AI语言已设置为中文。请问有什么我可以协助您的？✨'
+  },
+  {
+    id: 'ru',
+    name: 'Russian',
+    nativeName: 'Русский',
+    flag: '🇷🇺',
+    category: 'International',
+    description: 'Грамотные и подробные ответы на русском',
+    greeting: 'Здравствуйте! 👋 Язык ИИ установлен на русский. Чем я могу вам помочь? ✨'
+  },
+  {
+    id: 'pt',
+    name: 'Portuguese',
+    nativeName: 'Português',
+    flag: '🇧🇷',
+    category: 'International',
+    description: 'Respostas naturais e precisas em português',
+    greeting: 'Olá! 👋 O idioma da IA foi definido para português. Como posso te ajudar hoje? ✨'
+  },
+  {
+    id: 'it',
+    name: 'Italian',
+    nativeName: 'Italiano',
+    flag: '🇮🇹',
+    category: 'International',
+    description: 'Risposte fluide ed eleganti in italiano',
+    greeting: 'Ciao! 👋 La lingua dell\'IA è stata impostata su italiano. Come posso aiutarti oggi? ✨'
+  },
+  {
+    id: 'tr',
+    name: 'Turkish',
+    nativeName: 'Türkçe',
+    flag: '🇹🇷',
+    category: 'International',
+    description: 'Akıcı ve hızlı Türkçe yanıtlar',
+    greeting: 'Merhaba! 👋 Yapay zeka dili Türkçe olarak ayarlandı. Bugün size nasıl yardımcı olabilirim? ✨'
+  },
+  {
+    id: 'id',
+    name: 'Indonesian',
+    nativeName: 'Bahasa Indonesia',
+    flag: '🇮🇩',
+    category: 'International',
+    description: 'Jawaban ramah dan cepat dalam Bahasa Indonesia',
+    greeting: 'Halo! 👋 Bahasa AI telah diatur ke Bahasa Indonesia. Ada yang bisa saya bantu? ✨'
+  },
+  {
+    id: 'vi',
+    name: 'Vietnamese',
+    nativeName: 'Tiếng Việt',
+    flag: '🇻🇳',
+    category: 'International',
+    description: 'Phản hồi nhanh và chính xác bằng tiếng Việt',
+    greeting: 'Xin chào! 👋 Ngôn ngữ AI đã được đặt thành Tiếng Việt. Tôi có thể giúp gì cho bạn hôm nay? ✨'
+  },
+  {
+    id: 'th',
+    name: 'Thai',
+    nativeName: 'ภาษาไทย',
+    flag: '🇹🇭',
+    category: 'International',
+    description: 'คำตอบที่ชัดเจนและเป็นธรรมชาติในภาษาไทย',
+    greeting: 'สวัสดีครับ/ค่ะ! 👋 ภาษาของ AI ถูกตั้งค่าเป็นภาษาไทยแล้ว มีอะไรให้ช่วยเหลือไหมครับ? ✨'
+  }
+];
 
 function FormattedAiMessage({ content, isBot }) {
   const [copiedIndex, setCopiedIndex] = useState(null);
@@ -312,6 +661,24 @@ const LOCAL_FALLBACK_REPLIES = [
 
 function AiBotModal({ onClose }) {
   const { user, token } = useAuth();
+  
+  // AI Bot Language state (persisted in localStorage)
+  const [selectedLanguage, setSelectedLanguage] = useState(() => {
+    const saved = localStorage.getItem('xorachat_ai_language');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        const match = AI_LANGUAGES.find(l => l.id === parsed.id);
+        if (match) return match;
+      } catch (e) {}
+    }
+    return AI_LANGUAGES.find(l => l.id === 'te') || AI_LANGUAGES[0];
+  });
+
+  const [isLangModalOpen, setIsLangModalOpen] = useState(false);
+  const [langSearchQuery, setLangSearchQuery] = useState('');
+  const [activeLangCategory, setActiveLangCategory] = useState('all');
+
   const [messages, setMessages] = useState(() => {
     const saved = localStorage.getItem(`ai_bot_msgs_${user?.id || 'guest'}`);
     if (saved) {
@@ -340,6 +707,43 @@ function AiBotModal({ onClose }) {
   const docInputRef = useRef(null);
   const videoRef = useRef(null);
   const attachMenuRef = useRef(null);
+
+  // Filtered languages based on search query & category
+  const filteredLanguages = useMemo(() => {
+    const q = langSearchQuery.trim().toLowerCase();
+    return AI_LANGUAGES.filter(lang => {
+      const matchesCategory = 
+        activeLangCategory === 'all' ||
+        (activeLangCategory === 'indian' && (lang.category === 'Indian Regional & National' || lang.id === 'auto')) ||
+        (activeLangCategory === 'international' && (lang.category === 'International' || lang.id === 'auto'));
+
+      if (!matchesCategory) return false;
+
+      if (!q) return true;
+      return (
+        lang.name.toLowerCase().includes(q) ||
+        lang.nativeName.toLowerCase().includes(q) ||
+        lang.id.toLowerCase().includes(q) ||
+        (lang.description && lang.description.toLowerCase().includes(q))
+      );
+    });
+  }, [langSearchQuery, activeLangCategory]);
+
+  const handleSelectLanguage = (lang) => {
+    setSelectedLanguage(lang);
+    localStorage.setItem('xorachat_ai_language', JSON.stringify(lang));
+    setIsLangModalOpen(false);
+    setLangSearchQuery('');
+
+    // Send instant dynamic AI confirmation message in the selected language
+    const confirmationMsg = {
+      id: Date.now(),
+      sender: 'bot',
+      text: lang.greeting || `AI Language has been set to ${lang.name} (${lang.nativeName}).`,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    setMessages(prev => [...prev, confirmationMsg]);
+  };
 
   useEffect(() => {
     localStorage.setItem(`ai_bot_msgs_${user?.id || 'guest'}`, JSON.stringify(messages));
@@ -510,7 +914,8 @@ function AiBotModal({ onClose }) {
 
       const payload = {
         message: query,
-        history: historyContext
+        history: historyContext,
+        language: selectedLanguage
       };
 
       if (currentAttachment) {
@@ -662,23 +1067,83 @@ function AiBotModal({ onClose }) {
             <ArrowLeft size={22} />
           </button>
           
-          <div style={{
-            width: '44px',
-            height: '44px',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #6366f1, #a855f7)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 14px rgba(99, 102, 241, 0.45)',
-            border: '2px solid rgba(255,255,255,0.3)'
-          }}>
-            <Bot size={26} color="white" />
+          {/* Interactive Clickable AI Bot Avatar for Language Selection */}
+          <div 
+            onClick={() => setIsLangModalOpen(true)}
+            style={{
+              position: 'relative',
+              cursor: 'pointer',
+              transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+            }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+            title="Click AI Logo to Change Language (తెలుగు, English, हिन्दी, etc.)"
+          >
+            <div style={{
+              width: '44px',
+              height: '44px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 14px rgba(99, 102, 241, 0.45)',
+              border: '2px solid rgba(255,255,255,0.3)'
+            }}>
+              <Bot size={26} color="white" />
+            </div>
+            {/* Miniature Language Globe Badge */}
+            <div style={{
+              position: 'absolute',
+              bottom: -2,
+              right: -2,
+              background: '#0284c7',
+              border: '2px solid #1e1b4b',
+              borderRadius: '50%',
+              width: '18px',
+              height: '18px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '10px',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.4)'
+            }}>
+              <Globe size={11} color="white" />
+            </div>
           </div>
 
           <div>
-            <div style={{ fontWeight: 800, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              My AI Assistant <Sparkles size={18} color="#fde047" />
+            <div style={{ fontWeight: 800, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span>My AI Assistant</span>
+              <Sparkles size={18} color="#fde047" />
+              
+              {/* Interactive Language Selector Chip */}
+              <button
+                onClick={() => setIsLangModalOpen(true)}
+                style={{
+                  background: 'rgba(255,255,255,0.18)',
+                  border: '1px solid rgba(255,255,255,0.28)',
+                  borderRadius: '16px',
+                  padding: '3px 10px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  transition: 'all 0.15s ease',
+                  backdropFilter: 'blur(8px)'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.28)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; }}
+                title="Change AI Language"
+              >
+                <span>{selectedLanguage.flag}</span>
+                <span>{selectedLanguage.name}</span>
+                <span style={{ color: '#93c5fd', fontSize: '0.72rem' }}>({selectedLanguage.nativeName})</span>
+                <ChevronDown size={12} color="#cbd5e1" />
+              </button>
             </div>
             <div style={{ fontSize: '0.8rem', color: '#93c5fd', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4ade80', display: 'inline-block' }} />
@@ -688,6 +1153,31 @@ function AiBotModal({ onClose }) {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button
+            onClick={() => setIsLangModalOpen(true)}
+            style={{
+              background: 'rgba(99, 102, 241, 0.25)',
+              border: '1px solid rgba(129, 140, 248, 0.4)',
+              borderRadius: '20px',
+              padding: '8px 14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+              color: 'white',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              transition: 'all 0.15s ease',
+              boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.45)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.25)'; }}
+            title="Search and select AI language"
+          >
+            <Globe size={16} color="#38bdf8" />
+            <span>Languages</span>
+          </button>
+
           <button 
             onClick={handleClear}
             title="Clear Chat History"
@@ -1432,6 +1922,312 @@ function AiBotModal({ onClose }) {
           </div>
         </div>
       </div>
+
+      {/* AI Bot Language Selector Modal Overlay */}
+      {isLangModalOpen && (
+        <div 
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 100000,
+            background: 'rgba(5, 10, 25, 0.85)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+            animation: 'fadeIn 0.2s ease-out'
+          }}
+          onClick={() => setIsLangModalOpen(false)}
+        >
+          <div 
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: 'linear-gradient(145deg, #1e1b4b 0%, #0f172a 100%)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              borderRadius: '24px',
+              width: '100%',
+              maxWidth: '680px',
+              maxHeight: '85vh',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px rgba(99, 102, 241, 0.25)',
+              overflow: 'hidden'
+            }}
+          >
+            {/* Modal Header */}
+            <div style={{
+              padding: '20px 24px 16px',
+              borderBottom: '1px solid rgba(255,255,255,0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 15px rgba(99, 102, 241, 0.4)'
+                }}>
+                  <Languages size={22} color="white" />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#f8fafc' }}>
+                    Select AI Bot Language
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: '#94a3b8' }}>
+                    Choose any Indian regional, national, or international language
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsLangModalOpen(false)}
+                style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '36px',
+                  height: '36px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#94a3b8',
+                  transition: 'all 0.15s'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = '#fff'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#94a3b8'; }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Search Bar & Category Filters */}
+            <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              <div style={{
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                marginBottom: '12px'
+              }}>
+                <Search size={18} color="#94a3b8" style={{ position: 'absolute', left: '14px', pointerEvents: 'none' }} />
+                <input
+                  type="text"
+                  placeholder="Search language (e.g., Telugu, Hindi, Tamil, English, etc.)..."
+                  value={langSearchQuery}
+                  onChange={e => setLangSearchQuery(e.target.value)}
+                  autoFocus
+                  style={{
+                    width: '100%',
+                    padding: '12px 42px 12px 42px',
+                    background: 'rgba(15, 23, 42, 0.8)',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    borderRadius: '14px',
+                    color: '#f8fafc',
+                    fontSize: '0.95rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s, box-shadow 0.2s'
+                  }}
+                  onFocus={e => {
+                    e.currentTarget.style.borderColor = '#6366f1';
+                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.25)';
+                  }}
+                  onBlur={e => {
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                />
+                {langSearchQuery && (
+                  <button
+                    onClick={() => setLangSearchQuery('')}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      background: 'none',
+                      border: 'none',
+                      color: '#94a3b8',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+
+              {/* Category Pills */}
+              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+                {[
+                  { id: 'all', label: `All Languages (${AI_LANGUAGES.length})` },
+                  { id: 'indian', label: '🇮🇳 Indian Regional & National' },
+                  { id: 'international', label: '🌍 International Languages' }
+                ].map(cat => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveLangCategory(cat.id)}
+                    style={{
+                      background: activeLangCategory === cat.id ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : 'rgba(255,255,255,0.08)',
+                      border: activeLangCategory === cat.id ? '1px solid #818cf8' : '1px solid rgba(255,255,255,0.1)',
+                      color: activeLangCategory === cat.id ? '#ffffff' : '#cbd5e1',
+                      padding: '6px 14px',
+                      borderRadius: '20px',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Language Grid */}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: '16px 24px',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '12px'
+            }}>
+              {filteredLanguages.length === 0 ? (
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 20px', color: '#94a3b8' }}>
+                  <Search size={36} color="#64748b" style={{ margin: '0 auto 12px', display: 'block' }} />
+                  <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>No languages matched "{langSearchQuery}"</p>
+                  <p style={{ margin: '6px 0 0', fontSize: '0.85rem' }}>Try searching by English or native script name (e.g., Telugu, தமிழ், Hindi)</p>
+                </div>
+              ) : (
+                filteredLanguages.map(lang => {
+                  const isSelected = selectedLanguage?.id === lang.id;
+                  return (
+                    <div
+                      key={lang.id}
+                      onClick={() => handleSelectLanguage(lang)}
+                      style={{
+                        background: isSelected 
+                          ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(168, 85, 247, 0.2) 100%)' 
+                          : 'rgba(255, 255, 255, 0.04)',
+                        border: isSelected ? '1.5px solid #818cf8' : '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '16px',
+                        padding: '14px 16px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '12px',
+                        transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
+                        boxShadow: isSelected ? '0 4px 20px rgba(99, 102, 241, 0.3)' : 'none'
+                      }}
+                      onMouseEnter={e => {
+                        if (!isSelected) {
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.09)';
+                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                        }
+                      }}
+                      onMouseLeave={e => {
+                        if (!isSelected) {
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
+                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                          e.currentTarget.style.transform = 'translateY(0)';
+                        }
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>{lang.flag}</span>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontWeight: 700, fontSize: '0.98rem', color: isSelected ? '#ffffff' : '#f1f5f9' }}>
+                              {lang.name}
+                            </span>
+                            <span style={{ 
+                              fontSize: '0.85rem', 
+                              color: isSelected ? '#a5b4fc' : '#94a3b8',
+                              fontWeight: 600,
+                              background: 'rgba(255,255,255,0.06)',
+                              padding: '2px 8px',
+                              borderRadius: '8px'
+                            }}>
+                              {lang.nativeName}
+                            </span>
+                          </div>
+                          {lang.description && (
+                            <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: '#64748b', maxWidth: '280px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {lang.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {isSelected ? (
+                        <div style={{
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '50%',
+                          background: '#6366f1',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          <Check size={15} color="white" strokeWidth={3} />
+                        </div>
+                      ) : (
+                        <div style={{
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '50%',
+                          border: '1.5px solid rgba(255,255,255,0.2)',
+                          flexShrink: 0
+                        }} />
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{
+              padding: '14px 24px',
+              borderTop: '1px solid rgba(255,255,255,0.08)',
+              background: 'rgba(15, 23, 42, 0.6)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <span style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
+                Selected: <strong style={{ color: '#e0e7ff' }}>{selectedLanguage?.flag} {selectedLanguage?.name} ({selectedLanguage?.nativeName})</strong>
+              </span>
+              <button
+                onClick={() => setIsLangModalOpen(false)}
+                style={{
+                  background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '8px 18px',
+                  color: 'white',
+                  fontWeight: 600,
+                  fontSize: '0.88rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(99, 102, 241, 0.4)'
+                }}
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

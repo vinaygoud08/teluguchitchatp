@@ -68,8 +68,8 @@ function detectImageGenRequest(text) {
   return null;
 }
 
-// 1. Google Gemini API (if GEMINI_API_KEY in .env) with Multimodal Vision & Document Support
-async function queryGemini(userPrompt, conversationHistory = [], attachment = null) {
+// 1. Google Gemini API with Multimodal Vision & Document Support and Dynamic Language Selection
+async function queryGemini(userPrompt, conversationHistory = [], attachment = null, language = null) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return null;
 
@@ -81,13 +81,21 @@ async function queryGemini(userPrompt, conversationHistory = [], attachment = nu
     'gemini-flash-latest'
   ];
 
-  const systemInstruction = `You are "My AI", an elite, ultra-fast Multimodal AI Assistant built into "Chit Chat Telugu" (like Meta AI on WhatsApp and ChatGPT).
+  const langInstruction = language && language.id !== 'auto'
+    ? `\n### STRICT LANGUAGE REQUIREMENT:
+The user has chosen **${language.name || language} (${language.nativeName || ''})** as their preferred AI language.
+You MUST write all your conversational responses, explanations, answers, and tutorials fluently in **${language.name || language} (${language.nativeName || ''})**.
+For coding/math solutions, explain concepts in **${language.name || language}** while keeping code syntax standard.`
+    : `\n### Language:
+Reply naturally in the user's language (Telugu, English, Hindi, or any language they communicate in).`;
+
+  const systemInstruction = `You are "My AI", an elite, ultra-fast Multimodal AI Assistant built into "Xorachat" (like Meta AI on WhatsApp and ChatGPT).
 
 ### Core Guidelines:
 1. **Direct & Rapid Responses**: Respond concisely, accurately, and immediately to what the user asks. Never append robotic lists of capabilities or menus.
 2. **Vision & Document Analysis**: When an image or document is attached, analyze and explain or solve it step-by-step.
 3. **Clean Text Formatting**: Use standard unicode math (∑, ∫, ², ³, √, ±, ≤, ≥, ×, ÷) without raw backslash LaTeX.
-4. **Bilingual & Natural**: Reply warmly in Telugu, English, or Telenglish matching the user's prompt.`;
+4. **Natural & Fluent Communication**: Reply warmly and naturally.${langInstruction}`;
 
   for (const model of models) {
     try {
@@ -163,7 +171,7 @@ async function queryGemini(userPrompt, conversationHistory = [], attachment = nu
 }
 
 // 2. Groq API (Llama 3.3 70B if GROQ_API_KEY in .env)
-async function queryGroq(userPrompt, conversationHistory = []) {
+async function queryGroq(userPrompt, conversationHistory = [], language = null) {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) return null;
 
@@ -171,10 +179,14 @@ async function queryGroq(userPrompt, conversationHistory = []) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
 
+    const langNotice = language && language.id !== 'auto'
+      ? ` The user has selected ${language.name} (${language.nativeName || ''}) as their language. Always reply fluently in ${language.name}.`
+      : ` You communicate fluently in Telugu, English, Hindi, and regional languages naturally.`;
+
     const messages = [
       {
         role: 'system',
-        content: `You are "My AI", a friendly, ultra-smart AI companion in Chit Chat Telugu (like Meta AI on WhatsApp and Snapchat My AI). You communicate fluently in Telugu and English naturally without rigid robotic menus.`
+        content: `You are "My AI", a friendly, ultra-smart AI companion in Xorachat (like Meta AI on WhatsApp and Snapchat My AI).${langNotice}`
       },
       ...conversationHistory.map(m => ({
         role: m.sender === 'user' ? 'user' : 'assistant',
@@ -458,7 +470,7 @@ function buildUltraHdRealisticPrompt(rawPrompt, requestedStyle = 'photo') {
 
 router.post('/chat', verifyTokenOptional, async (req, res) => {
   try {
-    const { message, history, attachment, generateImage, style } = req.body;
+    const { message, history, attachment, generateImage, style, language } = req.body;
     
     // Check for explicit or auto-detected image generation request
     const promptText = (message || '').trim();
@@ -480,14 +492,14 @@ router.post('/chat', verifyTokenOptional, async (req, res) => {
       return res.status(400).json({ reply: 'Please provide a message or attach an image/document.' });
     }
 
-    // 1. Try Gemini API with Multimodal Vision & Document capabilities
-    const geminiReply = await queryGemini(promptText, history || [], attachment || null);
+    // 1. Try Gemini API with Multimodal Vision, Document, and Language capabilities
+    const geminiReply = await queryGemini(promptText, history || [], attachment || null, language);
     if (geminiReply) {
       return res.json({ reply: geminiReply });
     }
 
     // 2. Try Groq API (if key present in .env)
-    const groqReply = await queryGroq(promptText, history || []);
+    const groqReply = await queryGroq(promptText, history || [], language);
     if (groqReply) {
       return res.json({ reply: groqReply });
     }
