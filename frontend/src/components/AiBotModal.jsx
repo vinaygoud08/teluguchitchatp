@@ -10,343 +10,381 @@ import {
 export const AI_LANGUAGES = [
   {
     id: 'auto',
-    name: 'Auto-Detect / Multilingual',
-    nativeName: 'స్వయంచాలకంగా గుర్తించు',
-    flag: '🌐',
+    code: 'AUTO',
+    name: 'Auto-Detect',
+    nativeName: 'స్వయంచాలక',
     category: 'Universal',
-    description: 'Replies dynamically matching whatever language you type in',
+    badgeBg: 'linear-gradient(135deg, #06b6d4, #3b82f6)',
+    description: 'Replies dynamically in whatever language you speak',
     greeting: 'హలో! 👋 AI భాష Auto-Detect కు మార్చబడింది. మీరు ఏ భాషలోనైనా నాతో మాట్లాడవచ్చు! ✨'
   },
   {
     id: 'te',
+    code: 'TE',
     name: 'Telugu',
     nativeName: 'తెలుగు',
-    flag: '🇮🇳',
     category: 'Indian Regional & National',
-    description: 'పూర్తిగా స్వచ్ఛమైన తెలుగు మరియు తెలుగు-ఇంగ్లీష్ సంభాషణలు',
+    badgeBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
+    description: 'స్వచ్ఛమైన తెలుగు సంభాషణలు మరియు వివరణలు',
     greeting: 'నమస్కారం! 🙏 AI భాష తెలుగుగా సెట్ చేయబడింది. మీకు ఎలా సహాయపడగలను? ✨'
   },
   {
     id: 'en',
+    code: 'EN',
     name: 'English',
     nativeName: 'English',
-    flag: '🌐',
     category: 'Indian Regional & National',
-    description: 'Clear, comprehensive English for coding, general queries, and assistance',
+    badgeBg: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+    description: 'Clear, fluent English for all tasks and coding',
     greeting: 'Hello! 👋 AI language has been set to English. How can I assist you today? ✨'
   },
   {
     id: 'hi',
+    code: 'HI',
     name: 'Hindi',
     nativeName: 'हिन्दी',
-    flag: '🇮🇳',
     category: 'Indian Regional & National',
-    description: 'भारत की राजभाषा में सहज और सटीक संवाद',
+    badgeBg: 'linear-gradient(135deg, #ef4444, #f97316)',
+    description: 'सरल और स्पष्ट हिन्दी में सभी उत्तर',
     greeting: 'नमस्ते! 🙏 AI की भाषा अब हिन्दी सेट कर दी गई है। मैं आपकी क्या सहायता कर सकता हूँ? ✨'
   },
   {
     id: 'ta',
+    code: 'TA',
     name: 'Tamil',
     nativeName: 'தமிழ்',
-    flag: '🇮🇳',
     category: 'Indian Regional & National',
-    description: 'செம்மொழியான தமிழில் உரையாடுங்கள்',
+    badgeBg: 'linear-gradient(135deg, #10b981, #059669)',
+    description: 'அழகான மற்றும் தெளிவான தமிழில் பதில்கள்',
     greeting: 'வணக்கம்! 🙏 AI மொழி இப்போது தமிழில் அமைக்கப்பட்டுள்ளது. நான் உங்களுக்கு எவ்வாறு உதவ முடியும்? ✨'
   },
   {
     id: 'kn',
+    code: 'KN',
     name: 'Kannada',
     nativeName: 'ಕನ್ನಡ',
-    flag: '🇮🇳',
     category: 'Indian Regional & National',
-    description: 'ಕನ್ನಡದಲ್ಲಿ ನಿಖರವಾದ ಮತ್ತು ಸ್ಪಷ್ಟವಾದ ಮಾಹಿತಿ',
+    badgeBg: 'linear-gradient(135deg, #eab308, #ca8a04)',
+    description: 'ಸ್ಪಷ್ಟ ಮತ್ತು ನಿಖರವಾದ ಕನ್ನಡ ವಿವರಣೆಗಳು',
     greeting: 'ನಮಸ್ಕಾರ! 🙏 AI ಭಾಷೆಯನ್ನು ಕನ್ನಡಕ್ಕೆ ಹೊಂದಿಸಲಾಗಿದೆ. ನಾನು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಬಹುದು? ✨'
   },
   {
     id: 'ml',
+    code: 'ML',
     name: 'Malayalam',
     nativeName: 'മലയാളം',
-    flag: '🇮🇳',
     category: 'Indian Regional & National',
-    description: 'മലയാളത്തിൽ ലളിതവും വിശദവുമായ മറുപടികൾ',
+    badgeBg: 'linear-gradient(135deg, #14b8a6, #0d9488)',
+    description: 'ലളിതവും വിശദവുമായ മലയാളം സംഭാഷണം',
     greeting: 'നമസ്കാരം! 🙏 AI ഭാഷ ഇപ്പോൾ മലയാളത്തിൽ സജ്ജീകരിച്ചിരിക്കുന്നു. ഞാൻ നിങ്ങളെ എങ്ങനെ സഹായിക്കാം? ✨'
   },
   {
     id: 'mr',
+    code: 'MR',
     name: 'Marathi',
     nativeName: 'मराठी',
-    flag: '🇮🇳',
     category: 'Indian Regional & National',
-    description: 'मराठीत सोप्या आणि अचूक भाषेत उत्तरे',
+    badgeBg: 'linear-gradient(135deg, #f43f5e, #e11d48)',
+    description: 'सोप्या आणि अचूक मराठीत उत्तरे',
     greeting: 'नमस्कार! 🙏 AI भाषा आता मराठीत सेट केली आहे. मी तुम्हाला कशी मदत करू शकतो? ✨'
   },
   {
     id: 'bn',
+    code: 'BN',
     name: 'Bengali',
     nativeName: 'বাংলা',
-    flag: '🇮🇳',
     category: 'Indian Regional & National',
-    description: 'বাংলায় সহজ ও সুন্দর তথ্য ও উত্তর',
+    badgeBg: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+    description: 'সুন্দর ও সাবলীল বাংলায় উত্তর',
     greeting: 'নমস্কার! 🙏 AI ভাষা বাংলায় সেট করা হয়েছে। আমি আপনাকে কীভাবে সাহায্য করতে পারি? ✨'
   },
   {
     id: 'gu',
+    code: 'GU',
     name: 'Gujarati',
     nativeName: 'ગુજરાતી',
-    flag: '🇮🇳',
     category: 'Indian Regional & National',
-    description: 'ગુજરાતી ભાષામાં સચોટ અને ઝડપી જવાબો',
+    badgeBg: 'linear-gradient(135deg, #fb923c, #ea580c)',
+    description: 'સરળ અને સચોટ ગુજરાતી ભાષામાં સહાય',
     greeting: 'નમસ્તે! 🙏 AI ભાષા હવે ગુજરાતીમાં સેટ થઈ ગઈ છે. હું તમને કેવી રીતે મદદ કરી શકું? ✨'
   },
   {
     id: 'pa',
+    code: 'PA',
     name: 'Punjabi',
     nativeName: 'ਪੰਜਾਬੀ',
-    flag: '🇮🇳',
     category: 'Indian Regional & National',
-    description: 'ਪੰਜਾਬੀ ਵਿੱਚ ਸਪੱਸ਼ਟ ਅਤੇ ਮਦਦਗਾਰ ਜਾਣਕਾਰੀ',
+    badgeBg: 'linear-gradient(135deg, #f59e0b, #b45309)',
+    description: 'ਸਪੱਸ਼ਟ ਅਤੇ ਮਦਦਗਾਰ ਪੰਜਾਬੀ ਸੰਵਾਦ',
     greeting: 'ਸਤਿ ਸ਼੍ਰੀ ਅਕਾਲ! 🙏 AI ਭਾਸ਼ਾ ਪੰਜਾਬੀ ਵਿੱਚ ਸੈੱਟ ਕੀਤੀ ਗਈ ਹੈ। ਮੈਂ ਤੁਹਾਡੀ ਕਿਵੇਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ? ✨'
   },
   {
     id: 'or',
+    code: 'OR',
     name: 'Odia',
     nativeName: 'ଓଡ଼ିଆ',
-    flag: '🇮🇳',
     category: 'Indian Regional & National',
-    description: 'ଓଡ଼ିଆ ଭାଷାରେ ସଠିକ୍ ଏବଂ ସହଜ ଉତ୍ତର',
+    badgeBg: 'linear-gradient(135deg, #0284c7, #0369a1)',
+    description: 'ସଠିକ୍ ଏବଂ ସରଳ ଓଡ଼ିଆରେ ଉତ୍ତର',
     greeting: 'ନମସ୍କାର! 🙏 AI ଭାଷା ଓଡ଼ିଆରେ ସେଟ୍ ହୋଇଛି। ମୁଁ ଆପଣଙ୍କୁ କିପରି ସାହାଯ୍ୟ କରିପାରିବି? ✨'
   },
   {
     id: 'ur',
+    code: 'UR',
     name: 'Urdu',
     nativeName: 'اردو',
-    flag: '🇮🇳',
     category: 'Indian Regional & National',
-    description: 'اردو زبان میں شائستہ اور درست معلومات',
+    badgeBg: 'linear-gradient(135deg, #10b981, #047857)',
+    description: 'شائستہ اور مکمل اردو میں معلومات',
     greeting: 'السلام علیکم! 🙏 AI زبان اب اردو میں سیٹ کر دی گئی ہے۔ میں آپ کی کیا مدد کر سکتا ہوں؟ ✨'
   },
   {
     id: 'as',
+    code: 'AS',
     name: 'Assamese',
     nativeName: 'অসমীয়া',
-    flag: '🇮🇳',
     category: 'Indian Regional & National',
+    badgeBg: 'linear-gradient(135deg, #059669, #065f46)',
     description: 'অসমীয়া ভাষাত সঠিক আৰু স্পষ্ট তথ্য',
     greeting: 'নমস্কাৰ! 🙏 AI ভাষা অসমীয়াত নিৰ্ধাৰণ কৰা হৈছে। মই আপোনাক কেনেদৰে সহায় কৰিব পাৰোঁ? ✨'
   },
   {
     id: 'sa',
+    code: 'SA',
     name: 'Sanskrit',
     nativeName: 'संस्कृतम्',
-    flag: '🇮🇳',
     category: 'Indian Regional & National',
-    description: 'प्राचीन-भारतीय-संस्कृत-भाषायां संवादः',
+    badgeBg: 'linear-gradient(135deg, #d97706, #b45309)',
+    description: 'प्राचीन-संस्कृत-भाषायां संवादः',
     greeting: 'नमो नमः! 🙏 AI भाषा संस्कृतेन संयोजिता अस्ति। अहं भवतः कथं साहाय्यं कर्तुं शक्नोमि? ✨'
   },
   {
     id: 'kok',
+    code: 'KOK',
     name: 'Konkani',
     nativeName: 'कोंकणी',
-    flag: '🇮🇳',
     category: 'Indian Regional & National',
+    badgeBg: 'linear-gradient(135deg, #ec4899, #be185d)',
     description: 'कोंकणी भाशेंत सोपे आनी स्पश्ट जाप',
     greeting: 'नमस्कार! 🙏 AI भास कोंकणींत सेट जाली. हांव तुका कशी मदत करूं? ✨'
   },
   {
     id: 'mai',
+    code: 'MAI',
     name: 'Maithili',
     nativeName: 'मैथिली',
-    flag: '🇮🇳',
     category: 'Indian Regional & National',
-    description: 'मैथिली भाषामे सुगम संवाद',
+    badgeBg: 'linear-gradient(135deg, #f97316, #c2410c)',
+    description: 'मैथि भाषामे सुगम संवाद',
     greeting: 'प्रणाम! 🙏 AI केर भाषा मैथिली सेट कएल गेल अछि। हम अहाँक की मद्दति कऽ सकैत छी? ✨'
   },
   {
     id: 'ne',
+    code: 'NE',
     name: 'Nepali',
     nativeName: 'नेपाली',
-    flag: '🇳🇵',
     category: 'Indian Regional & National',
+    badgeBg: 'linear-gradient(135deg, #dc2626, #991b1b)',
     description: 'नेपाली भाषामा सहज र स्पष्ट उत्तरहरू',
     greeting: 'नमस्ते! 🙏 AI भाषा नेपालीमा सेट गरिएको छ। म तपाईंलाई कसरी सहयोग गर्न सक्छु? ✨'
   },
   {
     id: 'sd',
+    code: 'SD',
     name: 'Sindhi',
-    nativeName: 'سنڌي / सिन्धी',
-    flag: '🇮🇳',
+    nativeName: 'سنڌي',
     category: 'Indian Regional & National',
+    badgeBg: 'linear-gradient(135deg, #0d9488, #115e59)',
     description: 'سنڌي ٻوليءَ ۾ واضح جواب',
     greeting: 'سلام! 🙏 AI ٻولي سنڌي ۾ سيٽ ڪئي وئي آهي. مان توهان جي ڪهڙي مدد ڪري سگهان ٿو؟ ✨'
   },
   {
     id: 'ks',
+    code: 'KS',
     name: 'Kashmiri',
-    nativeName: 'कॉशुर / كٲشُر',
-    flag: '🇮🇳',
+    nativeName: 'कॉशुर',
     category: 'Indian Regional & National',
+    badgeBg: 'linear-gradient(135deg, #7c3aed, #5b21b6)',
     description: 'کٲشُر زبانہِ منٛز جواب',
     greeting: 'سلام! 🙏 AI زَبان گٔیہِ کٲشُر سیٹ۔ بؤ كِتھ کَن کَرِوہ مَدَتھ؟ ✨'
   },
   {
     id: 'doi',
+    code: 'DOI',
     name: 'Dogri',
     nativeName: 'डोगरी',
-    flag: '🇮🇳',
     category: 'Indian Regional & National',
+    badgeBg: 'linear-gradient(135deg, #ca8a04, #854d0e)',
     description: 'डोगरी भाशा च उत्तर',
     greeting: 'नमस्ते! 🙏 AI भाशा डोगरी च सेट होई गेई ऐ। मैं तुंदी केह् मदद करी सकना? ✨'
   },
   {
     id: 'mni',
-    name: 'Manipuri / Meitei',
+    code: 'MNI',
+    name: 'Manipuri',
     nativeName: 'মৈতৈলোন্',
-    flag: '🇮🇳',
     category: 'Indian Regional & National',
+    badgeBg: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
     description: 'মৈতৈলোন্দা পাউখুম',
     greeting: 'খুরুমজরি! 🙏 AI লোন মৈতৈলোন্দা সেৎ তৌরে। ঐহাক্না নহাকপু করম্না মতেং পাংগদগে? ✨'
   },
   {
     id: 'brx',
+    code: 'BRX',
     name: 'Bodo',
     nativeName: 'बर\'',
-    flag: '🇮🇳',
     category: 'Indian Regional & National',
+    badgeBg: 'linear-gradient(135deg, #16a34a, #15803d)',
     description: 'बर\' रावजों फिननाय',
-    greeting: 'खुलुमबाय! 🙏 AI रावखौ बर\'आव सेट खालामबाय। आं नोंखौ माबोरै हेफाजाब होनो हागोन? ✨'
+    greeting: 'खुलुमबाय! 🙏 AI रावखौ बर\'आव सेट खालामबाय। ਆਂ नोंखौ माबोरै हेफाजाब होनो हागोन? ✨'
   },
   {
     id: 'sat',
+    code: 'SAT',
     name: 'Santali',
     nativeName: 'ᱥᱟᱱᱛᱟᱲᱤ',
-    flag: '🇮🇳',
     category: 'Indian Regional & National',
+    badgeBg: 'linear-gradient(135deg, #9333ea, #7e22ce)',
     description: 'ᱥᱟᱱᱛᱟᱲᱤ ᱯᱟᱹᱨᱥᱤ ᱛᱮ ᱛᱮᱞᱟ',
     greeting: 'ᱡᱚᱦᱟᱨ! 🙏 AI ᱯᱟᱹᱨᱥᱤ ᱫᱚ ᱥᱟᱱᱛᱟᱲᱤ ᱛᱮ ᱥᱮᱴ ᱮᱱᱟ᱾ ᱤᱧ ᱪᱮᱫ ᱞᱮᱠᱟᱧ ᱜᱚᱲᱚ ᱫᱟᱲᱮᱭᱟᱢᱟ? ✨'
   },
   {
     id: 'es',
+    code: 'ES',
     name: 'Spanish',
     nativeName: 'Español',
-    flag: '🇪🇸',
     category: 'International',
+    badgeBg: 'linear-gradient(135deg, #ea580c, #c2410c)',
     description: 'Respuestas fluidas y precisas en español',
     greeting: '¡Hola! 👋 El idioma de la IA se ha configurado en español. ¿En qué puedo ayudarte hoy? ✨'
   },
   {
     id: 'fr',
+    code: 'FR',
     name: 'French',
     nativeName: 'Français',
-    flag: '🇫🇷',
     category: 'International',
+    badgeBg: 'linear-gradient(135deg, #2563eb, #1e40af)',
     description: 'Réponses élégantes et précises en français',
     greeting: 'Bonjour ! 👋 La langue de l\'IA a été réglée sur le français. Comment puis-je vous aider ? ✨'
   },
   {
     id: 'de',
+    code: 'DE',
     name: 'German',
     nativeName: 'Deutsch',
-    flag: '🇩🇪',
     category: 'International',
+    badgeBg: 'linear-gradient(135deg, #d97706, #78350f)',
     description: 'Klare und strukturierte Antworten auf Deutsch',
     greeting: 'Hallo! 👋 Die KI-Sprache wurde auf Deutsch eingestellt. Wie kann ich Ihnen helfen? ✨'
   },
   {
     id: 'ar',
+    code: 'AR',
     name: 'Arabic',
     nativeName: 'العربية',
-    flag: '🇸🇦',
     category: 'International',
+    badgeBg: 'linear-gradient(135deg, #059669, #064e3b)',
     description: 'إجابات دقيقة وشاملة باللغة العربية',
     greeting: 'أهلاً بك! 👋 تم ضبط لغة الذكاء الاصطناعي إلى العربية. كيف يمكنني مساعدتك اليوم؟ ✨'
   },
   {
     id: 'ja',
+    code: 'JA',
     name: 'Japanese',
     nativeName: '日本語',
-    flag: '🇯🇵',
     category: 'International',
+    badgeBg: 'linear-gradient(135deg, #e11d48, #be123c)',
     description: '丁寧で正確な日本語のサポート',
     greeting: 'こんにちは！👋 AIの言語が日本語に設定されました。どのようにお手伝いできますか？✨'
   },
   {
     id: 'ko',
+    code: 'KO',
     name: 'Korean',
     nativeName: '한국어',
-    flag: '🇰🇷',
     category: 'International',
+    badgeBg: 'linear-gradient(135deg, #0284c7, #075985)',
     description: '친절하고 정확한 한국어 답변',
     greeting: '안녕하세요! 👋 AI 언어가 한국어로 설정되었습니다. 무엇을 도와드릴까요? ✨'
   },
   {
     id: 'zh',
+    code: 'ZH',
     name: 'Chinese',
-    nativeName: '中文 (简体)',
-    flag: '🇨🇳',
+    nativeName: '中文',
     category: 'International',
+    badgeBg: 'linear-gradient(135deg, #dc2626, #991b1b)',
     description: '流畅而全面的中文回答',
     greeting: '你好！👋 AI语言已设置为中文。请问有什么我可以协助您的？✨'
   },
   {
     id: 'ru',
+    code: 'RU',
     name: 'Russian',
     nativeName: 'Русский',
-    flag: '🇷🇺',
     category: 'International',
+    badgeBg: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
     description: 'Грамотные и подробные ответы на русском',
     greeting: 'Здравствуйте! 👋 Язык ИИ установлен на русский. Чем я могу вам помочь? ✨'
   },
   {
     id: 'pt',
+    code: 'PT',
     name: 'Portuguese',
     nativeName: 'Português',
-    flag: '🇧🇷',
     category: 'International',
+    badgeBg: 'linear-gradient(135deg, #16a34a, #166534)',
     description: 'Respostas naturais e precisas em português',
     greeting: 'Olá! 👋 O idioma da IA foi definido para português. Como posso te ajudar hoje? ✨'
   },
   {
     id: 'it',
+    code: 'IT',
     name: 'Italian',
     nativeName: 'Italiano',
-    flag: '🇮🇹',
     category: 'International',
+    badgeBg: 'linear-gradient(135deg, #059669, #047857)',
     description: 'Risposte fluide ed eleganti in italiano',
     greeting: 'Ciao! 👋 La lingua dell\'IA è stata impostata su italiano. Come posso aiutarti oggi? ✨'
   },
   {
     id: 'tr',
+    code: 'TR',
     name: 'Turkish',
     nativeName: 'Türkçe',
-    flag: '🇹🇷',
     category: 'International',
+    badgeBg: 'linear-gradient(135deg, #e11d48, #9f1239)',
     description: 'Akıcı ve hızlı Türkçe yanıtlar',
     greeting: 'Merhaba! 👋 Yapay zeka dili Türkçe olarak ayarlandı. Bugün size nasıl yardımcı olabilirim? ✨'
   },
   {
     id: 'id',
+    code: 'ID',
     name: 'Indonesian',
     nativeName: 'Bahasa Indonesia',
-    flag: '🇮🇩',
     category: 'International',
+    badgeBg: 'linear-gradient(135deg, #ea580c, #9a3412)',
     description: 'Jawaban ramah dan cepat dalam Bahasa Indonesia',
     greeting: 'Halo! 👋 Bahasa AI telah diatur ke Bahasa Indonesia. Ada yang bisa saya bantu? ✨'
   },
   {
     id: 'vi',
+    code: 'VI',
     name: 'Vietnamese',
     nativeName: 'Tiếng Việt',
-    flag: '🇻🇳',
     category: 'International',
+    badgeBg: 'linear-gradient(135deg, #ca8a04, #713f12)',
     description: 'Phản hồi nhanh và chính xác bằng tiếng Việt',
     greeting: 'Xin chào! 👋 Ngôn ngữ AI đã được đặt thành Tiếng Việt. Tôi có thể giúp gì cho bạn hôm nay? ✨'
   },
   {
     id: 'th',
+    code: 'TH',
     name: 'Thai',
     nativeName: 'ภาษาไทย',
-    flag: '🇹🇭',
     category: 'International',
+    badgeBg: 'linear-gradient(135deg, #4f46e5, #3730a3)',
     description: 'คำตอบที่ชัดเจนและเป็นธรรมชาติในภาษาไทย',
     greeting: 'สวัสดีครับ/ค่ะ! 👋 ภาษาของ AI ถูกตั้งค่าเป็นภาษาไทยแล้ว มีอะไรให้ช่วยเหลือไหมครับ? ✨'
   }
@@ -1121,8 +1159,8 @@ function AiBotModal({ onClose }) {
               <button
                 onClick={() => setIsLangModalOpen(true)}
                 style={{
-                  background: 'rgba(255,255,255,0.18)',
-                  border: '1px solid rgba(255,255,255,0.28)',
+                  background: 'rgba(255,255,255,0.15)',
+                  border: '1px solid rgba(255,255,255,0.25)',
                   borderRadius: '16px',
                   padding: '3px 10px',
                   display: 'inline-flex',
@@ -1135,11 +1173,21 @@ function AiBotModal({ onClose }) {
                   transition: 'all 0.15s ease',
                   backdropFilter: 'blur(8px)'
                 }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.28)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.25)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; }}
                 title="Change AI Language"
               >
-                <span>{selectedLanguage.flag}</span>
+                <span style={{
+                  background: selectedLanguage.badgeBg || 'linear-gradient(135deg, #6366f1, #a855f7)',
+                  padding: '1px 6px',
+                  borderRadius: '6px',
+                  fontSize: '0.68rem',
+                  fontWeight: 800,
+                  color: '#ffffff',
+                  letterSpacing: '0.5px'
+                }}>
+                  {selectedLanguage.code || 'TE'}
+                </span>
                 <span>{selectedLanguage.name}</span>
                 <span style={{ color: '#93c5fd', fontSize: '0.72rem' }}>({selectedLanguage.nativeName})</span>
                 <ChevronDown size={12} color="#cbd5e1" />
@@ -1930,8 +1978,8 @@ function AiBotModal({ onClose }) {
             position: 'fixed',
             inset: 0,
             zIndex: 100000,
-            background: 'rgba(5, 10, 25, 0.85)',
-            backdropFilter: 'blur(8px)',
+            background: 'rgba(5, 10, 25, 0.88)',
+            backdropFilter: 'blur(12px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -1943,56 +1991,57 @@ function AiBotModal({ onClose }) {
           <div 
             onClick={e => e.stopPropagation()}
             style={{
-              background: 'linear-gradient(145deg, #1e1b4b 0%, #0f172a 100%)',
-              border: '1px solid rgba(255,255,255,0.15)',
-              borderRadius: '24px',
+              background: '#0d1527',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: '20px',
               width: '100%',
-              maxWidth: '680px',
-              maxHeight: '85vh',
+              maxWidth: '720px',
+              maxHeight: '82vh',
               display: 'flex',
               flexDirection: 'column',
-              boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px rgba(99, 102, 241, 0.25)',
+              boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 35px rgba(99, 102, 241, 0.2)',
               overflow: 'hidden'
             }}
           >
             {/* Modal Header */}
             <div style={{
-              padding: '20px 24px 16px',
-              borderBottom: '1px solid rgba(255,255,255,0.1)',
+              padding: '18px 22px 14px',
+              borderBottom: '1px solid rgba(255,255,255,0.08)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between'
+              justifyContent: 'space-between',
+              background: 'linear-gradient(180deg, rgba(30, 27, 75, 0.6) 0%, rgba(13, 21, 39, 0) 100%)'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: '12px',
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '10px',
                   background: 'linear-gradient(135deg, #6366f1, #a855f7)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 4px 15px rgba(99, 102, 241, 0.4)'
+                  boxShadow: '0 4px 14px rgba(99, 102, 241, 0.4)'
                 }}>
                   <Languages size={22} color="white" />
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#f8fafc' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#f8fafc' }}>
                     Select AI Bot Language
                   </h3>
-                  <p style={{ margin: 0, fontSize: '0.82rem', color: '#94a3b8' }}>
-                    Choose any Indian regional, national, or international language
+                  <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#94a3b8' }}>
+                    Choose any Indian regional, national, or global language
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setIsLangModalOpen(false)}
                 style={{
-                  background: 'rgba(255,255,255,0.1)',
+                  background: 'rgba(255,255,255,0.08)',
                   border: 'none',
                   borderRadius: '50%',
-                  width: '36px',
-                  height: '36px',
+                  width: '34px',
+                  height: '34px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -2001,44 +2050,44 @@ function AiBotModal({ onClose }) {
                   transition: 'all 0.15s'
                 }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = '#fff'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#94a3b8'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#94a3b8'; }}
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
 
             {/* Search Bar & Category Filters */}
-            <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ padding: '14px 22px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: '#0a101f' }}>
               <div style={{
                 position: 'relative',
                 display: 'flex',
                 alignItems: 'center',
-                marginBottom: '12px'
+                marginBottom: '10px'
               }}>
-                <Search size={18} color="#94a3b8" style={{ position: 'absolute', left: '14px', pointerEvents: 'none' }} />
+                <Search size={17} color="#94a3b8" style={{ position: 'absolute', left: '14px', pointerEvents: 'none' }} />
                 <input
                   type="text"
-                  placeholder="Search language (e.g., Telugu, Hindi, Tamil, English, etc.)..."
+                  placeholder="Search language by name or script (e.g. Telugu, తెలుగు, Hindi)..."
                   value={langSearchQuery}
                   onChange={e => setLangSearchQuery(e.target.value)}
                   autoFocus
                   style={{
                     width: '100%',
-                    padding: '12px 42px 12px 42px',
-                    background: 'rgba(15, 23, 42, 0.8)',
-                    border: '1px solid rgba(255,255,255,0.15)',
-                    borderRadius: '14px',
+                    padding: '11px 38px 11px 40px',
+                    background: 'rgba(15, 23, 42, 0.9)',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    borderRadius: '12px',
                     color: '#f8fafc',
-                    fontSize: '0.95rem',
+                    fontSize: '0.92rem',
                     outline: 'none',
                     transition: 'border-color 0.2s, box-shadow 0.2s'
                   }}
                   onFocus={e => {
                     e.currentTarget.style.borderColor = '#6366f1';
-                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.25)';
+                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.2)';
                   }}
                   onBlur={e => {
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)';
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 />
@@ -2056,31 +2105,30 @@ function AiBotModal({ onClose }) {
                       alignItems: 'center'
                     }}
                   >
-                    <X size={16} />
+                    <X size={15} />
                   </button>
                 )}
               </div>
 
-              {/* Category Pills */}
-              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+              {/* Category Pills (Clean wrapping, no horizontal scrollbars) */}
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {[
                   { id: 'all', label: `All Languages (${AI_LANGUAGES.length})` },
-                  { id: 'indian', label: '🇮🇳 Indian Regional & National' },
-                  { id: 'international', label: '🌍 International Languages' }
+                  { id: 'indian', label: 'Regional & National (23)' },
+                  { id: 'international', label: 'Global Languages (14)' }
                 ].map(cat => (
                   <button
                     key={cat.id}
                     onClick={() => setActiveLangCategory(cat.id)}
                     style={{
-                      background: activeLangCategory === cat.id ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : 'rgba(255,255,255,0.08)',
-                      border: activeLangCategory === cat.id ? '1px solid #818cf8' : '1px solid rgba(255,255,255,0.1)',
+                      background: activeLangCategory === cat.id ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : 'rgba(255,255,255,0.06)',
+                      border: activeLangCategory === cat.id ? '1px solid #818cf8' : '1px solid rgba(255,255,255,0.08)',
                       color: activeLangCategory === cat.id ? '#ffffff' : '#cbd5e1',
-                      padding: '6px 14px',
-                      borderRadius: '20px',
-                      fontSize: '0.8rem',
+                      padding: '5px 12px',
+                      borderRadius: '16px',
+                      fontSize: '0.78rem',
                       fontWeight: 600,
                       cursor: 'pointer',
-                      whiteSpace: 'nowrap',
                       transition: 'all 0.15s ease'
                     }}
                   >
@@ -2090,20 +2138,21 @@ function AiBotModal({ onClose }) {
               </div>
             </div>
 
-            {/* Language Grid */}
+            {/* Language Grid (Pure vertical scroll, no horizontal scrollbar) */}
             <div style={{
               flex: 1,
               overflowY: 'auto',
-              padding: '16px 24px',
+              overflowX: 'hidden',
+              padding: '14px 20px',
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-              gap: '12px'
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '10px'
             }}>
               {filteredLanguages.length === 0 ? (
-                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 20px', color: '#94a3b8' }}>
-                  <Search size={36} color="#64748b" style={{ margin: '0 auto 12px', display: 'block' }} />
-                  <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>No languages matched "{langSearchQuery}"</p>
-                  <p style={{ margin: '6px 0 0', fontSize: '0.85rem' }}>Try searching by English or native script name (e.g., Telugu, தமிழ், Hindi)</p>
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '36px 20px', color: '#94a3b8' }}>
+                  <Search size={32} color="#64748b" style={{ margin: '0 auto 10px', display: 'block' }} />
+                  <p style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600 }}>No languages matched "{langSearchQuery}"</p>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.82rem' }}>Try searching by English or native script (e.g. Telugu, தமிழ், Hindi)</p>
                 </div>
               ) : (
                 filteredLanguages.map(lang => {
@@ -2114,64 +2163,89 @@ function AiBotModal({ onClose }) {
                       onClick={() => handleSelectLanguage(lang)}
                       style={{
                         background: isSelected 
-                          ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(168, 85, 247, 0.2) 100%)' 
-                          : 'rgba(255, 255, 255, 0.04)',
+                          ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.22) 0%, rgba(168, 85, 247, 0.15) 100%)' 
+                          : 'rgba(255, 255, 255, 0.03)',
                         border: isSelected ? '1.5px solid #818cf8' : '1px solid rgba(255, 255, 255, 0.08)',
-                        borderRadius: '16px',
-                        padding: '14px 16px',
+                        borderRadius: '12px',
+                        padding: '11px 14px',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         gap: '12px',
-                        transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
-                        boxShadow: isSelected ? '0 4px 20px rgba(99, 102, 241, 0.3)' : 'none'
+                        transition: 'all 0.15s ease',
+                        boxShadow: isSelected ? '0 4px 14px rgba(99, 102, 241, 0.25)' : 'none'
                       }}
                       onMouseEnter={e => {
                         if (!isSelected) {
-                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.09)';
-                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.07)';
+                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.16)';
                         }
                       }}
                       onMouseLeave={e => {
                         if (!isSelected) {
-                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
                           e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
-                          e.currentTarget.style.transform = 'translateY(0)';
                         }
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>{lang.flag}</span>
-                        <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontWeight: 700, fontSize: '0.98rem', color: isSelected ? '#ffffff' : '#f1f5f9' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                        {/* 2-3 Letter Language Badge Code */}
+                        <div style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '8px',
+                          background: lang.badgeBg || 'linear-gradient(135deg, #6366f1, #a855f7)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#ffffff',
+                          fontWeight: 800,
+                          fontSize: lang.code?.length > 2 ? '0.7rem' : '0.8rem',
+                          letterSpacing: '0.5px',
+                          flexShrink: 0,
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                        }}>
+                          {lang.code}
+                        </div>
+
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
+                            <span style={{ fontWeight: 700, fontSize: '0.92rem', color: isSelected ? '#ffffff' : '#f1f5f9', whiteSpace: 'nowrap' }}>
                               {lang.name}
                             </span>
                             <span style={{ 
-                              fontSize: '0.85rem', 
-                              color: isSelected ? '#a5b4fc' : '#94a3b8',
+                              fontSize: '0.78rem', 
+                              color: isSelected ? '#c7d2fe' : '#94a3b8',
                               fontWeight: 600,
                               background: 'rgba(255,255,255,0.06)',
-                              padding: '2px 8px',
-                              borderRadius: '8px'
+                              padding: '1px 6px',
+                              borderRadius: '6px',
+                              whiteSpace: 'nowrap'
                             }}>
                               {lang.nativeName}
                             </span>
                           </div>
                           {lang.description && (
-                            <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: '#64748b', maxWidth: '280px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <div style={{ 
+                              margin: '2px 0 0', 
+                              fontSize: '0.72rem', 
+                              color: '#64748b', 
+                              whiteSpace: 'nowrap', 
+                              overflow: 'hidden', 
+                              textOverflow: 'ellipsis' 
+                            }}>
                               {lang.description}
-                            </p>
+                            </div>
                           )}
                         </div>
                       </div>
 
+                      {/* Selection Indicator */}
                       {isSelected ? (
                         <div style={{
-                          width: '24px',
-                          height: '24px',
+                          width: '20px',
+                          height: '20px',
                           borderRadius: '50%',
                           background: '#6366f1',
                           display: 'flex',
@@ -2179,12 +2253,12 @@ function AiBotModal({ onClose }) {
                           justifyContent: 'center',
                           flexShrink: 0
                         }}>
-                          <Check size={15} color="white" strokeWidth={3} />
+                          <Check size={13} color="white" strokeWidth={3} />
                         </div>
                       ) : (
                         <div style={{
-                          width: '20px',
-                          height: '20px',
+                          width: '18px',
+                          height: '18px',
                           borderRadius: '50%',
                           border: '1.5px solid rgba(255,255,255,0.2)',
                           flexShrink: 0
@@ -2198,28 +2272,39 @@ function AiBotModal({ onClose }) {
 
             {/* Modal Footer */}
             <div style={{
-              padding: '14px 24px',
+              padding: '12px 22px',
               borderTop: '1px solid rgba(255,255,255,0.08)',
-              background: 'rgba(15, 23, 42, 0.6)',
+              background: '#0a101f',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between'
             }}>
-              <span style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
-                Selected: <strong style={{ color: '#e0e7ff' }}>{selectedLanguage?.flag} {selectedLanguage?.name} ({selectedLanguage?.nativeName})</strong>
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#94a3b8' }}>
+                <span>Selected:</span>
+                <span style={{
+                  background: selectedLanguage?.badgeBg || 'linear-gradient(135deg, #6366f1, #a855f7)',
+                  color: 'white',
+                  padding: '1px 6px',
+                  borderRadius: '5px',
+                  fontSize: '0.7rem',
+                  fontWeight: 800
+                }}>
+                  {selectedLanguage?.code || 'TE'}
+                </span>
+                <strong style={{ color: '#e0e7ff' }}>{selectedLanguage?.name} ({selectedLanguage?.nativeName})</strong>
+              </div>
               <button
                 onClick={() => setIsLangModalOpen(false)}
                 style={{
                   background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
                   border: 'none',
-                  borderRadius: '12px',
-                  padding: '8px 18px',
+                  borderRadius: '10px',
+                  padding: '7px 18px',
                   color: 'white',
                   fontWeight: 600,
-                  fontSize: '0.88rem',
+                  fontSize: '0.85rem',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 14px rgba(99, 102, 241, 0.4)'
+                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)'
                 }}
               >
                 Done
