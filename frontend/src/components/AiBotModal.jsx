@@ -867,15 +867,54 @@ function AiBotModal({ onClose }) {
     setIsLangModalOpen(false);
     setLangSearchQuery('');
 
-    // Send instant dynamic AI confirmation message in the selected language
-    const confirmationMsg = {
-      id: Date.now(),
-      sender: 'bot',
-      text: lang.greeting || `AI Language has been set to ${lang.name} (${lang.nativeName}).`,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-    setMessages(prev => [...prev, confirmationMsg]);
+    // Update messages so the first greeting is immediately in the newly selected language
+    setMessages(prev => {
+      const hasUserMessages = prev.some(m => m.sender === 'user');
+      const newWelcomeText = getLocalizedWelcomeMessage(lang, user?.username);
+
+      if (!hasUserMessages) {
+        // If no user conversation yet, replace with clean welcome message in the new language
+        return [
+          {
+            id: 'welcome',
+            sender: 'bot',
+            text: newWelcomeText,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ];
+      } else {
+        // If there's an existing conversation, update the welcome message and add confirmation
+        const updated = prev.map(m => m.id === 'welcome' ? { ...m, text: newWelcomeText } : m);
+        return [
+          ...updated,
+          {
+            id: Date.now(),
+            sender: 'bot',
+            text: lang.greeting || `AI Language has been set to ${lang.name} (${lang.nativeName}).`,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ];
+      }
+    });
   };
+
+  // Ensure first welcome message always matches the user's selected language
+  useEffect(() => {
+    setMessages(prev => {
+      const welcomeIndex = prev.findIndex(m => m.id === 'welcome');
+      if (welcomeIndex !== -1) {
+        const expectedWelcome = getLocalizedWelcomeMessage(selectedLanguage, user?.username);
+        const expectedReset = getLocalizedResetMessage(selectedLanguage);
+        // If the current welcome message doesn't match either expected welcome/reset for this language
+        if (prev[welcomeIndex].text !== expectedWelcome && prev[welcomeIndex].text !== expectedReset && prev.length === 1) {
+          const updated = [...prev];
+          updated[welcomeIndex] = { ...updated[welcomeIndex], text: expectedWelcome };
+          return updated;
+        }
+      }
+      return prev;
+    });
+  }, [selectedLanguage, user?.username]);
 
   useEffect(() => {
     localStorage.setItem(`ai_bot_msgs_${user?.id || 'guest'}`, JSON.stringify(messages));
