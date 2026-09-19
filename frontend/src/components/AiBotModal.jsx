@@ -697,6 +697,88 @@ const LOCAL_FALLBACK_REPLIES = [
   }
 ];
 
+export function getLocalizedResetMessage(lang) {
+  const langId = lang?.id || 'te';
+  const resetMap = {
+    te: `నమస్కారం! 🙏 చాట్ రీసెట్ చేయబడింది. మీకు ఎలా సహాయపడగలను? 🤖✨`,
+    en: `Hello! 👋 Chat has been reset. How can I assist you today? 🤖✨`,
+    hi: `नमस्ते! 🙏 चैट रीसेट कर दिया गया है। मैं आपकी क्या सहायता कर सकता हूँ? 🤖✨`,
+    ta: `வணக்கம்! 🙏 அரட்டை மீட்டமைக்கப்பட்டது. நான் உங்களுக்கு எவ்வாறு உதவ முடியும்? 🤖✨`,
+    kn: `ನಮಸ್ಕಾರ! 🙏 ಚಾಟ್ ಮರುಹೊಂದಿಸಲಾಗಿದೆ. ನಾನು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಬಹುದು? 🤖✨`,
+    ml: `നമസ്കാരം! 🙏 ചാറ്റ് റീസെറ്റ് ചെയ്തു. ഞാൻ നിങ്ങളെ എങ്ങനെ സഹായിക്കാം? 🤖✨`,
+    mr: `नमस्कार! 🙏 चॅट रीसेट केले आहे. मी तुम्हाला कशी मदत करू शकतो? 🤖✨`,
+    bn: `নমস্কার! 🙏 চ্যাট রিসেট করা হয়েছে। আমি আপনাকে কীভাবে সাহায্য করতে পারি? 🤖✨`,
+    gu: `નમસ્તે! 🙏 ચેટ રીસેટ કરવામાં આવી છે. હું તમને કેવી રીતે મદદ કરી શકું? 🤖✨`,
+    pa: `ਸਤਿ ਸ਼੍ਰੀ ਅਕਾਲ! 🙏 ਚੈਟ ਰੀਸੈੱਟ ਕੀਤੀ ਗਈ ਹੈ। ਮੈਂ ਤੁਹਾਡੀ ਕਿਵੇਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ? 🤖✨`,
+    or: `ନମସ୍କାର! 🙏 ଚାଟ୍ ରିସେଟ୍ ହୋଇଛି। ମୁଁ ଆପଣଙ୍କୁ କିପରି ସାହାଯ୍ୟ କରିପାରିବି? 🤖✨`,
+    ur: `السلام علیکم! 🙏 چیٹ ری سیٹ کر دی گئی ہے۔ میں آپ کی کیا مدد کر سکتا ہوں؟ 🤖✨`,
+    as: `নমস্কাৰ! 🙏 চ্যাট ৰিচেট কৰা হৈছে। মই আপোনাক কেনেদৰে সহায় কৰিব পাৰোঁ? 🤖✨`,
+    sa: `नमो नमः! 🙏 सम्भाषणं पुनः संयोजितम्। अहं कथं साहाय्यं कर्तुं शक्नोमि? 🤖✨`,
+    kok: `नमस्कार! 🙏 चॅट रीसेट जालें. हांव कशी मदत करूं? 🤖✨`,
+    mai: `प्रणाम! 🙏 च्याट रिसेट कएल गेल। हम की मद्दति कऽ सकैत छी? 🤖✨`,
+    ne: `नमस्ते! 🙏 च्याट रिसेट गरियो। म तपाईंलाई कसरी सहयोग गर्न सक्छु? 🤖✨`,
+    sd: `سلام! 🙏 چيٽ ري سيٽ ڪئي وئي آهي. مان ڪهڙي مدد ڪري سگهان ٿو؟ 🤖✨`,
+    ks: `سلام! 🙏 چیٹ گٔیہِ ری سیٹ۔ بؤ كِتھ کَن کَرِوہ مَدَتھ؟ 🤖✨`,
+    doi: `नमस्ते! 🙏 चैट रीसेट होई गेई ऐ। मैं केह् मदद करी सकना? 🤖✨`,
+    mni: `খুরুমজরি! 🙏 চ্যাট রিসেট তৌরে। ঐহাক্না মতেং করম্না পাংগদগে? 🤖✨`,
+    brx: `खुलुमबाय! 🙏 च्याट रिसेट जाबाय। आं माबोरै हेफाजाब होनो हागोन? 🤖✨`,
+    sat: `ᱡᱚᱦᱟᱨ! 🙏 ᱪᱮᱴ ᱨᱤᱥᱮᱴ ᱮᱱᱟ᱾ ᱤᱧ ᱪᱮᱫ ᱞᱮᱠᱟᱧ ᱜᱚᱲᱚ ᱫᱟᱲᱮᱭᱟᱢᱟ? 🤖✨`,
+    es: `¡Hola! 👋 El chat se ha restablecido. ¿En qué puedo ayudarte hoy? 🤖✨`,
+    fr: `Bonjour ! 👋 Le chat a été réinitialisé. Comment puis-je vous aider ? 🤖✨`,
+    de: `Hallo! 👋 Der Chat wurde zurückgesetzt. Wie kann ich Ihnen helfen? 🤖✨`,
+    ar: `أهلاً بك! 👋 تمت إعادة ضبط المحادثة. كيف يمكنني مساعدتك اليوم؟ 🤖✨`,
+    ja: `こんにちは！👋 チャットがリセットされました。どのようにお手伝いできますか？🤖✨`,
+    ko: `안녕하세요! 👋 대화가 초기화되었습니다. 무엇을 도와드릴까요? 🤖✨`,
+    zh: `你好！👋 聊天已重置。请问有什么我可以协助您的？🤖✨`,
+    ru: `Здравствуйте! 👋 Чат сброшен. Чем я могу вам помочь? 🤖✨`,
+    pt: `Olá! 👋 O chat foi reiniciado. Como posso te ajudar hoje? 🤖✨`,
+    it: `Ciao! 👋 La chat è stata reimpostata. Come posso aiutarti oggi? 🤖✨`,
+    tr: `Merhaba! 👋 Sohbet sıfırlandı. Bugün size nasıl yardımcı olabilirim? 🤖✨`,
+    id: `Halo! 👋 Obrolan telah direset. Ada yang bisa saya bantu hari ini? 🤖✨`,
+    vi: `Xin chào! 👋 Cuộc trò chuyện đã được đặt lại. Tôi có thể giúp gì cho bạn? 🤖✨`,
+    th: `สวัสดีครับ/ค่ะ! 👋 การแชทถูกรีเซ็ตแล้ว มีอะไรให้ช่วยเหลือไหมครับ? 🤖✨`,
+    auto: `హలో! 👋 చాట్ రీసెట్ చేయబడింది / Chat has been reset. How can I assist you? 🤖✨`
+  };
+  return resetMap[langId] || `Hello! 👋 Chat has been reset. How can I assist you today? 🤖✨`;
+}
+
+export function getLocalizedWelcomeMessage(lang, username) {
+  const u = username ? ` ${username}` : '';
+  const langId = lang?.id || 'te';
+  const welcomeMap = {
+    te: `హలో${u}! 👋 నేను మీ **My AI** అసిస్టెంట్ ని. మీకు ఎలా సహాయపడగలను? ✨`,
+    en: `Hello${u}! 👋 I am your **My AI** Assistant. How can I assist you today? ✨`,
+    hi: `नमस्ते${u}! 🙏 मैं आपका **My AI** असिस्टेंट हूँ। मैं आपकी क्या सहायता कर सकता हूँ? ✨`,
+    ta: `வணக்கம்${u}! 🙏 நான் உங்கள் **My AI** உதவியாளர். நான் உங்களுக்கு எவ்வாறு உதவ முடியும்? ✨`,
+    kn: `ನಮಸ್ಕಾರ${u}! 🙏 ನಾನು ನಿಮ್ಮ **My AI** ಸಹಾಯಕ. ನಾನು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಬಹುದು? ✨`,
+    ml: `നമസ്കാരം${u}! 🙏 ഞാൻ നിങ്ങളുടെ **My AI** അസിസ്റ്റന്റാണ്. ഞാൻ നിങ്ങളെ എങ്ങനെ സഹായിക്കാം? ✨`,
+    mr: `नमस्कार${u}! 🙏 मी तुमचा **My AI** असिस्टंट आहे. मी तुम्हाला कशी मदत करू शकतो? ✨`,
+    bn: `নমস্কার${u}! 🙏 আমি আপনার **My AI** সহায়ক। আমি আপনাকে কীভাবে সাহায্য করতে পারি? ✨`,
+    gu: `નમસ્તે${u}! 🙏 હું તમારો **My AI** સહાયક છું. હું તમને કેવી રીતે મદદ કરી શકું? ✨`,
+    pa: `ਸਤਿ ਸ਼੍ਰੀ ਅਕਾਲ${u}! 🙏 ਮੈਂ ਤੁਹਾਡਾ **My AI** ਸਹਾਇਕ ਹਾਂ। ਮੈਂ ਤੁਹਾਡੀ ਕਿਵੇਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ? ✨`,
+    or: `ନମସ୍କାର${u}! 🙏 ମୁଁ ଆପଣଙ୍କର **My AI** ସହାୟକ। ମୁଁ ଆପଣଙ୍କୁ କିପରି ସାହାଯ୍ୟ କରିପାରିବି? ✨`,
+    ur: `السلام علیکم${u}! 🙏 میں آپ کا **My AI** اسسٹنٹ ہوں۔ میں آپ کی کیا مدد کر سکتا ہوں؟ ✨`,
+    as: `নমস্কাৰ${u}! 🙏 মই আপোনাৰ **My AI** সহায়ক। মই আপোনাক কেনেদৰে সহায় কৰিব পাৰোঁ? ✨`,
+    sa: `नमो नमः${u}! 🙏 अहं भवतः **My AI** सहायकः। अहं भवतः कथं साहाय्यं कर्तुं शक्नोमि? ✨`,
+    es: `¡Hola${u}! 👋 Soy tu asistente **My AI**. ¿En qué puedo ayudarte hoy? ✨`,
+    fr: `Bonjour${u} ! 👋 Je suis votre assistant **My AI**. Comment puis-je vous aider ? ✨`,
+    de: `Hallo${u}! 👋 Ich bin Ihr **My AI** Assistent. Wie kann ich Ihnen helfen? ✨`,
+    ar: `أهلاً بك${u}! 👋 أنا مساعدك الذكي **My AI**. كيف يمكنني مساعدتك اليوم؟ ✨`,
+    ja: `こんにちは${u}さん！👋 私は **My AI** アシスタントです。どのようにお手伝いできますか？✨`,
+    ko: `안녕하세요${u}님! 👋 저는 **My AI** 어시스턴트입니다. 무엇을 도와드릴까요? ✨`,
+    zh: `你好${u}！👋 我是您的 **My AI** 助手。请问有什么我可以协助您的？✨`,
+    ru: `Здравствуйте${u}! 👋 Я ваш помощник **My AI**. Чем я могу вам помочь? ✨`,
+    pt: `Olá${u}! 👋 Sou o seu assistente **My AI**. Como posso te ajudar hoje? ✨`,
+    it: `Ciao${u}! 👋 Sono il tuo assistente **My AI**. Come posso aiutarti oggi? ✨`,
+    tr: `Merhaba${u}! 👋 Ben **My AI** asistanınızım. Bugün size nasıl yardımcı olabilirim? ✨`,
+    id: `Halo${u}! 👋 Saya asisten **My AI** Anda. Ada yang bisa saya bantu hari ini? ✨`,
+    vi: `Xin chào${u}! 👋 Tôi là trợ lý **My AI** của bạn. Tôi có thể giúp gì cho bạn? ✨`,
+    th: `สวัสดีครับ/ค่ะ${u}! 👋 ผม/ฉันคือผู้ช่วย **My AI** มีอะไรให้ช่วยเหลือไหมครับ? ✨`,
+    auto: `హలో${u}! 👋 నేను మీ **My AI** అసిస్టెంట్ ని. మీకు ఎలా సహాయపడగలను? ✨`
+  };
+  return welcomeMap[langId] || `Hello${u}! 👋 I am your **My AI** Assistant. How can I assist you today? ✨`;
+}
+
 function AiBotModal({ onClose }) {
   const { user, token } = useAuth();
   
@@ -722,11 +804,23 @@ function AiBotModal({ onClose }) {
     if (saved) {
       try { return JSON.parse(saved); } catch (e) {}
     }
+    const initialLang = (() => {
+      const savedLang = localStorage.getItem('xorachat_ai_language');
+      if (savedLang) {
+        try {
+          const parsed = JSON.parse(savedLang);
+          const match = AI_LANGUAGES.find(l => l.id === parsed.id);
+          if (match) return match;
+        } catch (e) {}
+      }
+      return AI_LANGUAGES.find(l => l.id === 'te') || AI_LANGUAGES[0];
+    })();
+
     return [
       {
         id: 'welcome',
         sender: 'bot',
-        text: `హలో ${user?.username ? user.username : ''}! 👋 నేను మీ **My AI** అసిస్టెంట్ ని. మీకు ఎలా సహాయపడగలను? ✨`,
+        text: getLocalizedWelcomeMessage(initialLang, user?.username),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ];
@@ -1031,7 +1125,7 @@ function AiBotModal({ onClose }) {
       {
         id: 'welcome',
         sender: 'bot',
-        text: `నమస్కారం! 🙏 చాట్ రీసెట్ చేయబడింది. ఏం మాట్లాడదాం? 🤖`,
+        text: getLocalizedResetMessage(selectedLanguage),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ];
