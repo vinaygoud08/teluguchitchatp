@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, memo } from 'react';
 import axios from 'axios';
 import MessageInput from './MessageInput';
 import { useAuth } from '../context/AuthContext';
-import { User, UserRound, CircleUser, Phone, Video, Search, MoreVertical, UserPlus, Info, LogOut, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { User, UserRound, CircleUser, Phone, Video, Search, MoreVertical, UserPlus, Info, LogOut, X, ChevronUp, ChevronDown, Reply, CornerUpRight, Copy, Pin, PinOff, Trash2, Download, Check, Users, CheckSquare } from 'lucide-react';
 import Avatar from './Avatar';
 import GroupInfoModal from './GroupInfoModal';
 import ImageViewerModal from './ImageViewerModal';
@@ -26,12 +26,32 @@ const RestartWarningModal = ({ onConfirm, onCancel }) => (
   </div>
 );
 
-const MessageItem = memo(({ msg, isSelf, senderUser, senderColor, senderIcon, onImageClick, onContextMenu, onProfileClick }) => {
+const MessageItem = memo(({ 
+  msg, 
+  isSelf, 
+  isSelfChat, 
+  senderUser, 
+  senderColor, 
+  senderIcon, 
+  onImageClick, 
+  onContextMenu, 
+  onProfileClick,
+  isSelected,
+  isSelectionMode,
+  onToggleSelect,
+  onCancelSelection,
+  onReact,
+  currentUserId
+}) => {
   const [viewing, setViewing] = useState(false);
   const [timeLeft, setTimeLeft] = useState(5);
   
   const msgKey = msg.id || msg.timestamp;
   const [isViewed, setIsViewed] = useState(() => localStorage.getItem(`viewed_${msgKey}`) === 'true');
+
+  const pressTimerRef = useRef(null);
+  const touchStartPosRef = useRef({ x: 0, y: 0 });
+  const isLongPressRef = useRef(false);
 
   const handleView = () => {
     if (isViewed || viewing) return;
@@ -54,9 +74,35 @@ const MessageItem = memo(({ msg, isSelf, senderUser, senderColor, senderIcon, on
     ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     : '';
 
+  const isPending = !msg.id || String(msg.id).startsWith('temp_') || msg.status === 'pending';
+  const isSeen = Boolean(msg.is_seen || msg.seen || msg.is_read || isSelfChat);
+  const isSent = !isPending;
+
+  let dot1Class = 'dot-dim';
+  let dot2Class = 'dot-dim';
+  let dot3Class = 'dot-dim';
+  let statusTooltip = 'Sending...';
+
+  if (isSeen) {
+    dot1Class = 'dot-green';
+    dot2Class = 'dot-green';
+    dot3Class = 'dot-green';
+    statusTooltip = 'Seen by recipient';
+  } else if (isSent) {
+    dot1Class = 'dot-yellow';
+    dot2Class = 'dot-yellow';
+    dot3Class = 'dot-dim';
+    statusTooltip = 'Sent & Delivered (Unseen)';
+  } else {
+    dot1Class = 'dot-orange';
+    dot2Class = 'dot-dim';
+    dot3Class = 'dot-dim';
+    statusTooltip = 'Sending / Waiting for network';
+  }
+
   // System messages (call history, encrypted notice, group updates)
   const isSystemMsg = msg.text && (
-    msg.text.startsWith('📞') || msg.text.startsWith('❌') || msg.text.includes('Voice Call') || msg.text.startsWith('📢')
+    msg.text.startsWith('📞') || msg.text.startsWith('❌') || msg.text.includes('Voice Call') || msg.text.includes('Video Call') || msg.text.startsWith('📢')
   );
 
   const handleUserClick = () => {
@@ -65,18 +111,126 @@ const MessageItem = memo(({ msg, isSelf, senderUser, senderColor, senderIcon, on
     }
   };
 
+  const openMenu = (e) => {
+    if (isSelectionMode) {
+      onToggleSelect && onToggleSelect(msg.id || msg.tempId);
+      return;
+    }
+    if (onContextMenu) {
+      const clientX = e?.clientX || (e?.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : window.innerWidth / 2);
+      const clientY = e?.clientY || (e?.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientY : window.innerHeight / 2);
+      onContextMenu({ clientX, clientY }, msg);
+    }
+  };
+
+  const handleTouchStart = (e) => {
+    if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+    const touch = e.touches[0];
+    touchStartPosRef.current = { x: touch.clientX, y: touch.clientY };
+    isLongPressRef.current = false;
+    pressTimerRef.current = setTimeout(() => {
+      isLongPressRef.current = true;
+      if (window.navigator?.vibrate) {
+        try { window.navigator.vibrate(40); } catch(err) {}
+      }
+      openMenu({ clientX: touch.clientX, clientY: touch.clientY });
+    }, 450);
+  };
+
+  const handleTouchMove = (e) => {
+    const touch = e.touches[0];
+    const dx = Math.abs(touch.clientX - touchStartPosRef.current.x);
+    const dy = Math.abs(touch.clientY - touchStartPosRef.current.y);
+    if (dx > 10 || dy > 10) {
+      if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
+  };
+
+  const handleMouseDown = (e) => {
+    if (e.button !== 0) return;
+    if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+    isLongPressRef.current = false;
+    pressTimerRef.current = setTimeout(() => {
+      isLongPressRef.current = true;
+      openMenu({ clientX: e.clientX, clientY: e.clientY });
+    }, 450);
+  };
+
+  const handleMouseUp = () => {
+    if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
+  };
+
   if (isSystemMsg) {
     return (
-      <div className="message system">
-        <div className="message-content">
-          {msg.text}
+      <div 
+        className={`message-row system ${isSelected ? 'selected' : ''}`}
+        style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+        onClick={(e) => {
+          if (isSelectionMode && e.target === e.currentTarget) {
+            onCancelSelection && onCancelSelection();
+          }
+        }}
+      >
+        {isSelectionMode && (
+          <div 
+            className={`selection-checkbox ${isSelected ? 'checked' : ''}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSelect && onToggleSelect(msg.id || msg.tempId);
+            }}
+          >
+            {isSelected && <Check size={12} color="white" />}
+          </div>
+        )}
+        <div 
+          className="message system"
+          onClick={openMenu}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            openMenu(e);
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          style={{ cursor: 'pointer', userSelect: 'none' }}
+          title="Long press or tap for options & reactions"
+        >
+          <div className="message-content" style={{ cursor: 'pointer' }}>
+            {msg.text}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`message-row ${isSelf ? 'self' : 'other'}`}>
+    <div 
+      className={`message-row ${isSelf ? 'self' : 'other'} ${isSelected ? 'selected' : ''}`}
+      onClick={(e) => {
+        if (isSelectionMode && e.target === e.currentTarget) {
+          onCancelSelection && onCancelSelection();
+        }
+      }}
+    >
+      {isSelectionMode && (
+        <div 
+          className={`selection-checkbox ${isSelected ? 'checked' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSelect && onToggleSelect(msg.id || msg.tempId);
+          }}
+        >
+          {isSelected && <Check size={12} color="white" />}
+        </div>
+      )}
+
       {!isSelf && (
         <div 
           className="message-avatar-btn" 
@@ -104,11 +258,24 @@ const MessageItem = memo(({ msg, isSelf, senderUser, senderColor, senderIcon, on
         )}
         <div 
           className="message-content" 
+          onClick={(e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button') || e.target.closest('.viewing-container')) {
+              return;
+            }
+            openMenu(e);
+          }}
           onContextMenu={(e) => {
             e.preventDefault();
-            if (onContextMenu) onContextMenu(e, msg);
+            openMenu(e);
           }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
           style={{ cursor: 'pointer' }}
+          title="Long press or tap for options & reactions"
         >
           {msg.reply_to && (
             <div style={{ background: 'rgba(0,0,0,0.1)', padding: '5px', borderRadius: '5px', marginBottom: '5px', fontSize: '0.85em', borderLeft: '3px solid #2196F3' }}>
@@ -167,9 +334,39 @@ const MessageItem = memo(({ msg, isSelf, senderUser, senderColor, senderIcon, on
             )}
           </div>
 
+          {/* Reaction Badges on Message */}
+          {msg.reactions && Object.keys(msg.reactions).length > 0 && (
+            <div className="message-reactions-tray">
+              {Object.entries(msg.reactions).map(([emoji, userIds]) => {
+                if (!userIds || userIds.length === 0) return null;
+                const hasReacted = userIds.includes(currentUserId);
+                return (
+                  <span 
+                    key={emoji} 
+                    className={`reaction-pill ${hasReacted ? 'self-reacted' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onReact && onReact(msg.id || msg.tempId, emoji);
+                    }}
+                    title={hasReacted ? `You and ${userIds.length - 1} others reacted ${emoji}` : `${userIds.length} reacted ${emoji}`}
+                  >
+                    {emoji} {userIds.length > 1 && <span className="reaction-count">{userIds.length}</span>}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+
           {!isSystemMsg && timeStr && (
             <div className="message-meta">
               <span className="message-time">{timeStr}</span>
+              {isSelf && (
+                <div className="message-status-ooo" title={statusTooltip}>
+                  <span className={`status-o ${dot1Class}`} />
+                  <span className={`status-o ${dot2Class}`} />
+                  <span className={`status-o ${dot3Class}`} />
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -208,14 +405,66 @@ const ChatBox = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   
+  // Realtime Typing State
+  const [typingUsers, setTypingUsers] = useState({}); // userId -> username
+
   // Context Menu & Replies
   const [contextMenu, setContextMenu] = useState(null);
   const [replyingTo, setReplyingTo] = useState(null);
   const [forwardMsg, setForwardMsg] = useState(null);
   const [copiedToast, setCopiedToast] = useState(false);
   
+  // Multi-Selection Mode & Reactions
+  const [selectedMessageIds, setSelectedMessageIds] = useState(new Set());
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+
+  const handleToggleSelect = (msgId) => {
+    setSelectedMessageIds(prev => {
+      const next = new Set(prev);
+      if (next.has(msgId)) {
+        next.delete(msgId);
+        if (next.size === 0) setIsSelectionMode(false);
+      } else {
+        next.add(msgId);
+      }
+      return next;
+    });
+  };
+
+  const handleStartSelection = (msg) => {
+    setIsSelectionMode(true);
+    setSelectedMessageIds(new Set([msg.id || msg.tempId]));
+    setContextMenu(null);
+  };
+
+  const handleCancelSelection = () => {
+    setIsSelectionMode(false);
+    setSelectedMessageIds(new Set());
+  };
+
+  const messagesContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
   const groupMenuRef = useRef(null);
+  const isUserNearBottomRef = useRef(true);
+  const [showScrollBottomBtn, setShowScrollBottomBtn] = useState(false);
+
+  const scrollToBottom = (behavior = 'smooth') => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior });
+    } else if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
+  };
+
+  const handleScroll = (e) => {
+    const el = e?.currentTarget || messagesContainerRef.current;
+    if (!el) return;
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+    const isNear = distanceFromBottom < 100;
+    isUserNearBottomRef.current = isNear;
+    setShowScrollBottomBtn(distanceFromBottom > 160);
+  };
 
   // Close group dropdown menu on outside click
   useEffect(() => {
@@ -232,18 +481,21 @@ const ChatBox = ({
     };
   }, [showGroupMenu]);
 
-  // Reset search when chat changes
+  // Reset search and selection when chat changes
   useEffect(() => {
     setIsSearchOpen(false);
     setSearchQuery('');
     setCurrentMatchIndex(0);
     setShowGroupMenu(false);
+    setIsSelectionMode(false);
+    setSelectedMessageIds(new Set());
   }, [activeChat]);
 
   // Get the other user's info when in private chat
   const isStrangerChat = activeChat ? activeChat.startsWith('stranger_') : false;
+  const isSelfChat = user && (activeChat === user.id || activeChat === user._id);
   const activeGroup = (Array.isArray(myGroups) ? myGroups : []).find(g => g.id === activeChat);
-  const otherUser = (Array.isArray(users) ? users : []).find(u => u.id === activeChat);
+  const otherUser = isSelfChat ? user : (Array.isArray(users) ? users : []).find(u => u.id === activeChat);
   
   const checkIsUserOnline = (uId) => {
     if (!uId) return false;
@@ -253,8 +505,20 @@ const ChatBox = ({
   };
 
   // A chat is considered "online" if it's the home chat, a group chat, or if the individual user is online
-  const isOnline = activeChat === 'home' || activeGroup || (otherUser && checkIsUserOnline(otherUser.id));
-  const otherIsOnline = otherUser ? checkIsUserOnline(otherUser.id) : false;
+  const isOnline = activeChat === 'home' || activeGroup || isSelfChat || (otherUser && checkIsUserOnline(otherUser.id));
+  const otherIsOnline = isSelfChat ? true : (otherUser ? checkIsUserOnline(otherUser.id) : false);
+
+  const myDeletedIds = React.useMemo(() => {
+    try {
+      const uId = user?.id || user?._id || 'guest';
+      return new Set(JSON.parse(localStorage.getItem(`deleted_for_me_${uId}`) || '[]'));
+    } catch(e) {
+      return new Set();
+    }
+  }, [user, messages]);
+
+  const rawMessages = messages[activeChat] || [];
+  const currentMessages = rawMessages.filter(m => !m.id || !myDeletedIds.has(m.id));
 
   const addOrUpdateMessage = (prevList = [], newMsg) => {
     if (!newMsg) return prevList;
@@ -284,10 +548,118 @@ const ChatBox = ({
   };
 
   const handleOptimisticMessage = (msg, chatKey) => {
+    isUserNearBottomRef.current = true;
     setMessages(prev => {
       const targetKey = chatKey || 'home';
       const list = prev[targetKey] || [];
       return { ...prev, [targetKey]: addOrUpdateMessage(list, msg) };
+    });
+    setTimeout(() => {
+      scrollToBottom('smooth');
+    }, 10);
+  };
+
+  const handleBatchCopy = () => {
+    const selectedMsgs = currentMessages.filter(m => selectedMessageIds.has(m.id || m.tempId) && m.text);
+    const combinedText = selectedMsgs.map(m => `${m.sender ? m.sender + ': ' : ''}${m.text}`).join('\n');
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(combinedText);
+    } else {
+      const el = document.createElement('textarea');
+      el.value = combinedText;
+      document.body.appendChild(el);
+      el.select();
+      try { document.execCommand('copy'); } catch(e) {}
+      document.body.removeChild(el);
+    }
+    setCopiedToast(true);
+    setTimeout(() => setCopiedToast(false), 2000);
+    handleCancelSelection();
+  };
+
+  const handleBatchForward = () => {
+    const selectedMsgs = currentMessages.filter(m => selectedMessageIds.has(m.id || m.tempId));
+    if (selectedMsgs.length === 1) {
+      setForwardMsg(selectedMsgs[0]);
+    } else if (selectedMsgs.length > 1) {
+      setForwardMsg({
+        text: selectedMsgs.filter(m => m.text).map(m => m.text).join('\n---\n'),
+        isBatch: true,
+        messages: selectedMsgs
+      });
+    }
+    handleCancelSelection();
+  };
+
+  const handleBatchDelete = (forEveryone = false) => {
+    const idsToDelete = Array.from(selectedMessageIds);
+    const uId = user?.id || user?._id || 'guest';
+    
+    if (forEveryone) {
+      const roomKey = activeChat === 'home' 
+        ? 'home_chat' 
+        : (activeGroup ? activeChat : (user ? [user.id, activeChat].sort().join('_') : activeChat));
+
+      idsToDelete.forEach(id => {
+        socket.emit('delete_message', { 
+          messageId: id, 
+          room: roomKey, 
+          otherUserId: activeChat !== 'home' ? activeChat : null 
+        });
+      });
+    } else {
+      try {
+        const stored = JSON.parse(localStorage.getItem(`deleted_for_me_${uId}`) || '[]');
+        const updated = Array.from(new Set([...stored, ...idsToDelete]));
+        localStorage.setItem(`deleted_for_me_${uId}`, JSON.stringify(updated));
+      } catch(e) {}
+    }
+
+    setMessages(prev => {
+      const curr = prev[activeChat] || [];
+      return {
+        ...prev,
+        [activeChat]: curr.filter(m => !idsToDelete.includes(m.id || m.tempId))
+      };
+    });
+
+    handleCancelSelection();
+  };
+
+  const handleReaction = (msgId, emoji) => {
+    const roomKey = activeChat === 'home' 
+      ? 'home_chat' 
+      : (activeGroup ? activeChat : (user ? [user.id, activeChat].sort().join('_') : activeChat));
+
+    const reactionData = {
+      messageId: msgId,
+      emoji,
+      userId: user?.id || user?._id,
+      username: user?.username,
+      room: roomKey,
+      otherUserId: activeChat !== 'home' ? activeChat : null
+    };
+
+    socket.emit('react_message', reactionData);
+
+    setMessages(prev => {
+      const list = prev[activeChat] || [];
+      return {
+        ...prev,
+        [activeChat]: list.map(m => {
+          if (m.id !== msgId && m.tempId !== msgId) return m;
+          const prevReactions = { ...(m.reactions || {}) };
+          const userList = prevReactions[emoji] || [];
+          const hasReacted = userList.includes(user?.id || user?._id);
+          if (hasReacted) {
+            prevReactions[emoji] = userList.filter(u => u !== (user?.id || user?._id));
+            if (prevReactions[emoji].length === 0) delete prevReactions[emoji];
+          } else {
+            prevReactions[emoji] = [...userList, user?.id || user?._id];
+          }
+          return { ...m, reactions: prevReactions };
+        })
+      };
     });
   };
 
@@ -365,12 +737,72 @@ const ChatBox = ({
       });
     };
 
+    const handleReactionEvent = (data) => {
+      if (!data || !data.messageId) return;
+      setMessages(prev => {
+        const newMsgs = { ...prev };
+        for (const roomKey in newMsgs) {
+          newMsgs[roomKey] = newMsgs[roomKey].map(m => {
+            if (m.id === data.messageId || m.tempId === data.messageId) {
+              const prevReactions = { ...(m.reactions || {}) };
+              const userList = prevReactions[data.emoji] || [];
+              const hasReacted = userList.includes(data.userId);
+              if (hasReacted) {
+                prevReactions[data.emoji] = userList.filter(u => u !== data.userId);
+                if (prevReactions[data.emoji].length === 0) delete prevReactions[data.emoji];
+              } else {
+                prevReactions[data.emoji] = [...userList, data.userId];
+              }
+              return { ...m, reactions: prevReactions };
+            }
+            return m;
+          });
+        }
+        return newMsgs;
+      });
+    };
+
+    const handleTyping = (data) => {
+      if (!data || !data.userId || (user && data.userId === (user.id || user._id))) return;
+      const currentRoom = isStrangerChat 
+        ? activeChat 
+        : activeGroup 
+        ? activeChat 
+        : (user && activeChat ? [user.id || user._id, activeChat].sort().join('_') : null);
+
+      if (data.room === currentRoom || data.recipientId === (user?.id || user?._id) || data.room === activeChat) {
+        setTypingUsers(prev => ({ ...prev, [data.userId]: data.username || 'User' }));
+      }
+    };
+
+    const handleStopTyping = (data) => {
+      if (!data || !data.userId) return;
+      setTypingUsers(prev => {
+        const next = { ...prev };
+        delete next[data.userId];
+        return next;
+      });
+    };
+
+    const handleMessageSeen = () => {
+      setMessages(prev => {
+        const targetKey = activeChat || 'home';
+        const list = prev[targetKey] || [];
+        const updated = list.map(m => (m.senderId === user?.id || m.senderId === user?._id ? { ...m, is_seen: true, seen: true } : m));
+        return { ...prev, [targetKey]: updated };
+      });
+    };
+
     socket.on('receive_message', receiveMessageHandler);
     socket.on('receive_private_message', receivePrivateHandler);
     socket.on('receive_group_message', receiveGroupHandler);
     socket.on('chat_cleared', handleChatCleared);
     socket.on('message_deleted', deleteMessageHandler);
     socket.on('message_pinned', pinMessageHandler);
+    socket.on('message_reaction', handleReactionEvent);
+    socket.on('typing', handleTyping);
+    socket.on('stop_typing', handleStopTyping);
+    socket.on('message_seen', handleMessageSeen);
 
     return () => {
       socket.off('connect', joinHome);
@@ -380,8 +812,12 @@ const ChatBox = ({
       socket.off('chat_cleared', handleChatCleared);
       socket.off('message_deleted', deleteMessageHandler);
       socket.off('message_pinned', pinMessageHandler);
+      socket.off('message_reaction', handleReactionEvent);
+      socket.off('typing', handleTyping);
+      socket.off('stop_typing', handleStopTyping);
+      socket.off('message_seen', handleMessageSeen);
     };
-  }, [socket, user]);
+  }, [socket, user, activeChat, activeGroup, isStrangerChat]);
 
   useEffect(() => {
     const joinPrivate = () => {
@@ -426,7 +862,17 @@ const ChatBox = ({
           }
         }
         
-        setMessages(prev => ({ ...prev, [activeChat]: messagesData }));
+        setMessages(prev => {
+          const oldList = prev[activeChat] || [];
+          if (oldList.length === messagesData.length) {
+            const isSame = oldList.every((om, i) => {
+              const nm = messagesData[i];
+              return om && nm && om.id === nm.id && om.text === nm.text && om.is_seen === nm.is_seen && om.is_pinned === nm.is_pinned;
+            });
+            if (isSame) return prev; // Do not update state if identical to prevent scroll interruptions
+          }
+          return { ...prev, [activeChat]: messagesData };
+        });
       } catch (err) {
         console.error('Error fetching messages:', err);
       }
@@ -441,9 +887,22 @@ const ChatBox = ({
     };
   }, [activeChat, user, socket, token, activeGroup]);
 
+  // Instantly scroll down when opening or switching chat
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, activeChat]);
+    isUserNearBottomRef.current = true;
+    setShowScrollBottomBtn(false);
+    const timer = setTimeout(() => {
+      scrollToBottom('auto');
+    }, 60);
+    return () => clearTimeout(timer);
+  }, [activeChat]);
+
+  // Only auto-scroll down if user was already near the bottom
+  useEffect(() => {
+    if (isUserNearBottomRef.current) {
+      scrollToBottom('smooth');
+    }
+  }, [currentMessages.length]);
 
   const handleRestartChat = async () => {
     setIsClearing(true);
@@ -486,8 +945,6 @@ const ChatBox = ({
     setStrangerLeft(true);
     if (onBackToSidebar) onBackToSidebar();
   };
-
-  const currentMessages = messages[activeChat] || [];
 
   const renderHeader = () => {
     return (
@@ -539,8 +996,34 @@ const ChatBox = ({
                 onClick={() => setShowGroupInfo(true)}
               >
                 <h2>{activeGroup.name}</h2>
-                <span className="status-text online">
-                  {activeGroup.myRole === 'admin' ? '🛡️ Group Admin • Tap for info' : 'Group • Tap for info'}
+                {Object.keys(typingUsers).length > 0 ? (
+                  <span className="status-text online typing-active">
+                    <span className="typing-dots-wave">
+                      <span className="wave-dot" />
+                      <span className="wave-dot" />
+                      <span className="wave-dot" />
+                    </span>
+                    {`${Object.values(typingUsers).join(', ')} typing...`}
+                  </span>
+                ) : (
+                  <span className="status-text online">
+                    {activeGroup.myRole === 'admin' ? '🛡️ Group Admin • Tap for info' : 'Group • Tap for info'}
+                  </span>
+                )}
+              </div>
+            </>
+          ) : isSelfChat ? (
+            <>
+              <div style={{ position: 'relative', width: 40, height: 40 }}>
+                <Avatar userId={user.id || user._id} username={user.username} size={40} />
+                <span className="online-dot" style={{ background: '#7c6ff7' }} />
+              </div>
+              <div className="chat-header-info">
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {user.username} <span style={{ fontSize: '0.72rem', background: 'rgba(124, 111, 247, 0.2)', color: '#a594fd', padding: '1px 6px', borderRadius: '6px' }}>You</span>
+                </h2>
+                <span className="status-text online" style={{ color: '#a594fd' }}>
+                  Message yourself • Notes to self
                 </span>
               </div>
             </>
@@ -552,9 +1035,20 @@ const ChatBox = ({
               </div>
               <div className="chat-header-info" style={{ cursor: 'pointer' }} onClick={() => setViewingProfile(otherUser)}>
                 <h2>{otherUser.username}</h2>
-                <span className={`status-text ${otherIsOnline ? 'online' : 'offline'}`}>
-                  {otherIsOnline ? 'Online' : 'Offline'}
-                </span>
+                {Object.keys(typingUsers).length > 0 ? (
+                  <span className="status-text online typing-active">
+                    <span className="typing-dots-wave">
+                      <span className="wave-dot" />
+                      <span className="wave-dot" />
+                      <span className="wave-dot" />
+                    </span>
+                    typing...
+                  </span>
+                ) : (
+                  <span className={`status-text ${otherIsOnline ? 'online' : 'offline'}`}>
+                    {otherIsOnline ? 'Online' : 'Offline'}
+                  </span>
+                )}
               </div>
             </>
           ) : (
@@ -642,6 +1136,10 @@ const ChatBox = ({
                 )}
               </div>
             </>
+          ) : isSelfChat ? (
+            <button className="chat-header-btn restart-btn" onClick={() => setMessages(prev => ({ ...prev, [activeChat]: [] }))} title="Clear Notes">
+              🔄 Clear
+            </button>
           ) : (
             <>
               <button className="chat-header-btn" onClick={() => setPendingCall('audio')} title="Voice Call"><Phone size={20} /></button>
@@ -662,7 +1160,67 @@ const ChatBox = ({
 
   return (
     <div className="chat-container">
-      {renderHeader()}
+      {isSelectionMode ? (
+        <div className="chat-selection-bar">
+          <div className="selection-count-badge">
+            <button className="chat-header-btn" onClick={handleCancelSelection} style={{ color: '#94a3b8' }}>
+              <X size={20} />
+            </button>
+            <span>{selectedMessageIds.size} Selected</span>
+          </div>
+          <div className="selection-actions">
+            {/* Call Buttons in Selection */}
+            {activeChat !== 'home' && !isStrangerChat && (
+              <>
+                <button 
+                  className="selection-action-btn call-btn" 
+                  onClick={() => {
+                    handleCancelSelection();
+                    if (activeGroup) onInitiateGroupCall && onInitiateGroupCall(activeGroup.id, activeGroup.name, 'audio');
+                    else setPendingCall('audio');
+                  }}
+                  title="Voice Call"
+                >
+                  <Phone size={15} />
+                  <span>Call</span>
+                </button>
+                <button 
+                  className="selection-action-btn call-btn" 
+                  onClick={() => {
+                    handleCancelSelection();
+                    if (activeGroup) onInitiateGroupCall && onInitiateGroupCall(activeGroup.id, activeGroup.name, 'video');
+                    else setPendingCall('video');
+                  }}
+                  title="Video Call"
+                >
+                  <Video size={15} />
+                  <span>Video</span>
+                </button>
+              </>
+            )}
+
+            {/* Copy Selected */}
+            <button className="selection-action-btn" onClick={handleBatchCopy} title="Copy selected">
+              <Copy size={15} />
+              <span>Copy</span>
+            </button>
+
+            {/* Forward Selected */}
+            <button className="selection-action-btn" onClick={handleBatchForward} title="Forward selected">
+              <CornerUpRight size={15} />
+              <span>Forward</span>
+            </button>
+
+            {/* Delete Selected */}
+            <button className="selection-action-btn danger" onClick={() => handleBatchDelete(false)} title="Delete for me">
+              <Trash2 size={15} />
+              <span>Delete</span>
+            </button>
+          </div>
+        </div>
+      ) : (
+        renderHeader()
+      )}
 
       {/* Active Group Call Banner */}
       {activeGroup && activeGroupCalls && activeGroupCalls[activeGroup.id] && activeGroupCalls[activeGroup.id].isActive && (
@@ -751,7 +1309,24 @@ const ChatBox = ({
         </div>
       )}
 
-      <div className="messages-area">
+      <div 
+        className="messages-area"
+        ref={messagesContainerRef}
+        onScroll={handleScroll}
+        onClick={(e) => {
+          if (isSelectionMode) {
+            // Deselect when tapping/clicking empty space in the messages container
+            if (
+              e.target === e.currentTarget || 
+              e.target.classList.contains('messages-area') || 
+              e.target.closest('.chat-empty') || 
+              e.target.classList.contains('encrypted-notice')
+            ) {
+              handleCancelSelection();
+            }
+          }
+        }}
+      >
         {activeChat !== 'home' && (
           <div className="encrypted-notice">
             🔒 Messages are private — only you and the other person can see them.
@@ -795,30 +1370,51 @@ const ChatBox = ({
             senderIcon = 'other';
           }
 
-          return (
-            <MessageItem 
-              key={msg.id || idx} 
-              msg={msgToPass} 
-              isSelf={isSelf} 
-              senderUser={senderInfo}
-              senderColor={senderColor} 
-              senderIcon={senderIcon} 
-              onImageClick={setViewingImage} 
-              onProfileClick={(profile) => {
-                if (isStrangerChat) return;
-                setViewingProfile(profile);
-              }}
-              onContextMenu={(e, messageObj) => {
-                setContextMenu({
-                  x: e.clientX,
-                  y: e.clientY,
-                  msg: messageObj
-                });
-              }}
-            />
-          );
+            return (
+              <MessageItem 
+                key={msg.id || idx} 
+                msg={msgToPass} 
+                isSelf={isSelf} 
+                isSelfChat={isSelfChat}
+                senderUser={senderInfo}
+                senderColor={senderColor} 
+                senderIcon={senderIcon} 
+                onImageClick={setViewingImage} 
+                onProfileClick={(profile) => {
+                  if (isStrangerChat) return;
+                  setViewingProfile(profile);
+                }}
+                onContextMenu={(e, messageObj) => {
+                  setContextMenu({
+                    x: e.clientX,
+                    y: e.clientY,
+                    msg: messageObj
+                  });
+                }}
+                isSelected={selectedMessageIds.has(msg.id || msg.tempId)}
+                isSelectionMode={isSelectionMode}
+                onToggleSelect={handleToggleSelect}
+                onCancelSelection={handleCancelSelection}
+                onReact={handleReaction}
+                currentUserId={user?.id || user?._id}
+              />
+            );
         })}
         <div ref={messagesEndRef} />
+
+        {showScrollBottomBtn && (
+          <button 
+            className="scroll-bottom-btn" 
+            onClick={() => {
+              isUserNearBottomRef.current = true;
+              setShowScrollBottomBtn(false);
+              scrollToBottom('smooth');
+            }}
+            title="Scroll to latest messages"
+          >
+            <ChevronDown size={20} />
+          </button>
+        )}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', width: '100%', padding: '0 15px', boxSizing: 'border-box' }}>
@@ -894,186 +1490,256 @@ const ChatBox = ({
       )}
 
       {copiedToast && (
-        <div style={{
-          position: 'fixed',
-          bottom: '80px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: 'rgba(15, 23, 42, 0.9)',
-          color: '#4ade80',
-          padding: '10px 20px',
-          borderRadius: '24px',
-          fontWeight: 700,
-          fontSize: '0.88rem',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-          zIndex: 100000,
-          border: '1px solid rgba(74, 222, 128, 0.3)',
-          animation: 'fadeIn 0.2s ease'
-        }}>
-          📋 Text copied to clipboard!
+        <div className="context-copied-toast">
+          <Check size={16} color="#4ade80" />
+          <span>Message text copied to clipboard!</span>
         </div>
       )}
 
-      {contextMenu && (
-        <>
-          {/* Overlay to close menu when clicking outside */}
-          <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 9999 }} onClick={() => setContextMenu(null)} onContextMenu={(e) => { e.preventDefault(); setContextMenu(null); }} />
-          <div style={{
-            position: 'fixed',
-            top: Math.min(contextMenu.y, window.innerHeight - 240),
-            left: Math.min(contextMenu.x, window.innerWidth - 180),
-            background: '#ffffff',
-            color: '#1e293b',
-            boxShadow: '0 12px 36px rgba(0,0,0,0.25)',
-            borderRadius: '16px',
-            padding: '6px',
-            zIndex: 10000,
-            minWidth: '160px',
-            display: 'flex',
-            flexDirection: 'column',
-            border: '1px solid #e2e8f0'
-          }}>
-            {/* 1. Reply */}
-            <button 
-              onClick={() => { setReplyingTo(contextMenu.msg); setContextMenu(null); }}
-              style={{ background: 'none', border: 'none', padding: '10px 14px', textAlign: 'left', cursor: 'pointer', width: '100%', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: '#1e293b', fontWeight: 600 }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
-            >
-              <span>↩️</span> Reply
-            </button>
+      {contextMenu && (() => {
+        const msg = contextMenu.msg;
+        const isSender = msg.senderId === user?.id || msg.sender === user?.username;
+        const isCallLogOrSystem = msg.text && (
+          msg.text.startsWith('📞') || 
+          msg.text.startsWith('❌') || 
+          msg.text.includes('Call') || 
+          msg.text.startsWith('📢')
+        );
+        const isGroupAdmin = activeGroup && activeGroup.myRole === 'admin';
+        const canDeleteForEveryone = isSender || isCallLogOrSystem || isSelfChat || isGroupAdmin || activeChat === 'home';
 
-            {/* 2. Forward */}
-            <button 
-              onClick={() => { setForwardMsg(contextMenu.msg); setContextMenu(null); }}
-              style={{ background: 'none', border: 'none', padding: '10px 14px', textAlign: 'left', cursor: 'pointer', width: '100%', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: '#1e293b', fontWeight: 600 }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
-            >
-              <span>➡️</span> Forward
-            </button>
+        const handleDeleteForMe = () => {
+          const msgId = msg.id;
+          const uId = user?.id || user?._id || 'guest';
+          if (msgId) {
+            try {
+              const stored = JSON.parse(localStorage.getItem(`deleted_for_me_${uId}`) || '[]');
+              if (!stored.includes(msgId)) {
+                stored.push(msgId);
+                localStorage.setItem(`deleted_for_me_${uId}`, JSON.stringify(stored));
+              }
+            } catch (e) {}
+          }
+          setMessages(prev => {
+            const curr = prev[activeChat] || [];
+            return {
+              ...prev,
+              [activeChat]: curr.filter(m => (m.id ? m.id !== msgId : m !== msg))
+            };
+          });
+          setContextMenu(null);
+        };
 
-            {/* 3. Copy */}
-            {contextMenu.msg.text && (
-              <button 
-                onClick={() => {
-                  const textToCopy = contextMenu.msg.text;
-                  if (navigator.clipboard && window.isSecureContext) {
-                    navigator.clipboard.writeText(textToCopy);
-                  } else {
-                    const el = document.createElement('textarea');
-                    el.value = textToCopy;
-                    document.body.appendChild(el);
-                    el.select();
-                    try { document.execCommand('copy'); } catch(e) {}
-                    document.body.removeChild(el);
-                  }
-                  setCopiedToast(true);
-                  setTimeout(() => setCopiedToast(false), 2000);
-                  setContextMenu(null);
-                }}
-                style={{ background: 'none', border: 'none', padding: '10px 14px', textAlign: 'left', cursor: 'pointer', width: '100%', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: '#1e293b', fontWeight: 600 }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
-              >
-                <span>📋</span> Copy
-              </button>
-            )}
+        const handleDeleteForEveryone = () => {
+          const roomKey = activeChat === 'home' 
+            ? 'home_chat' 
+            : (activeGroup ? activeChat : (user ? [user.id, activeChat].sort().join('_') : activeChat));
 
-            {/* 4. Pin */}
-            <button 
-              onClick={() => {
-                const roomKey = activeChat === 'home' 
-                  ? 'home_chat' 
-                  : (activeGroup ? activeChat : (user ? [user.id, activeChat].sort().join('_') : activeChat));
-                
-                socket.emit('pin_message', { 
-                  messageId: contextMenu.msg.id, 
-                  room: roomKey, 
-                  roomKey: activeChat,
-                  otherUserId: activeChat !== 'home' ? activeChat : null 
-                });
+          if (msg.id) {
+            socket.emit('delete_message', { 
+              messageId: msg.id, 
+              room: roomKey,
+              otherUserId: activeChat !== 'home' ? activeChat : null
+            });
+          }
 
-                // Optimistically toggle pin locally
-                setMessages(prev => {
-                  const curr = prev[activeChat] || [];
-                  return {
-                    ...prev,
-                    [activeChat]: curr.map(m => m.id === contextMenu.msg.id ? { ...m, is_pinned: !m.is_pinned } : m)
-                  };
-                });
-                
-                setContextMenu(null);
+          setMessages(prev => {
+            const curr = prev[activeChat] || [];
+            return {
+              ...prev,
+              [activeChat]: curr.filter(m => (m.id ? m.id !== msg.id : m !== msg))
+            };
+          });
+
+          setContextMenu(null);
+        };
+
+        return (
+          <>
+            {/* Overlay to close menu when clicking outside */}
+            <div 
+              className="message-context-overlay"
+              onClick={() => setContextMenu(null)} 
+              onContextMenu={(e) => { e.preventDefault(); setContextMenu(null); }} 
+            />
+            <div 
+              className="message-context-menu"
+              style={{
+                top: Math.min(Math.max(10, contextMenu.y), window.innerHeight - (canDeleteForEveryone ? 410 : 360)),
+                left: Math.min(Math.max(10, contextMenu.x), window.innerWidth - 260),
               }}
-              style={{ background: 'none', border: 'none', padding: '10px 14px', textAlign: 'left', cursor: 'pointer', width: '100%', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: '#1e293b', fontWeight: 600 }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
             >
-              <span>📌</span> {contextMenu.msg.is_pinned ? 'Unpin' : 'Pin'}
-            </button>
+              {/* Quick Emoji Reactions */}
+              <div className="emoji-reaction-bar">
+                {['❤️', '👍', '😂', '😮', '😢', '🙏', '🔥', '🎉'].map(emoji => (
+                  <button
+                    key={emoji}
+                    className="emoji-reaction-btn"
+                    onClick={() => {
+                      handleReaction(msg.id || msg.tempId, emoji);
+                      setContextMenu(null);
+                    }}
+                    title={`React with ${emoji}`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
 
-            {/* 5. Delete */}
-            {(contextMenu.msg.senderId === user?.id || contextMenu.msg.sender === user?.username) && (
+              {/* 0. Select Message */}
               <button 
+                className="context-menu-item"
+                onClick={() => handleStartSelection(msg)}
+              >
+                <div className="context-menu-icon" style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6' }}>
+                  <CheckSquare size={16} />
+                </div>
+                <span>Select message</span>
+              </button>
+
+              {/* 1. Reply */}
+              <button 
+                className="context-menu-item"
+                onClick={() => { setReplyingTo(msg); setContextMenu(null); }}
+              >
+                <div className="context-menu-icon reply">
+                  <Reply size={16} />
+                </div>
+                <span>Reply</span>
+              </button>
+
+              {/* 2. Forward */}
+              <button 
+                className="context-menu-item"
+                onClick={() => { setForwardMsg(msg); setContextMenu(null); }}
+              >
+                <div className="context-menu-icon forward">
+                  <CornerUpRight size={16} />
+                </div>
+                <span>Forward</span>
+              </button>
+
+              {/* 3. Copy */}
+              {msg.text && (
+                <button 
+                  className="context-menu-item"
+                  onClick={() => {
+                    const textToCopy = msg.text;
+                    if (navigator.clipboard && window.isSecureContext) {
+                      navigator.clipboard.writeText(textToCopy);
+                    } else {
+                      const el = document.createElement('textarea');
+                      el.value = textToCopy;
+                      document.body.appendChild(el);
+                      el.select();
+                      try { document.execCommand('copy'); } catch(e) {}
+                      document.body.removeChild(el);
+                    }
+                    setCopiedToast(true);
+                    setTimeout(() => setCopiedToast(false), 2000);
+                    setContextMenu(null);
+                  }}
+                >
+                  <div className="context-menu-icon copy">
+                    <Copy size={16} />
+                  </div>
+                  <span>Copy</span>
+                </button>
+              )}
+
+              {/* 4. Pin */}
+              <button 
+                className="context-menu-item"
                 onClick={() => {
                   const roomKey = activeChat === 'home' 
                     ? 'home_chat' 
                     : (activeGroup ? activeChat : (user ? [user.id, activeChat].sort().join('_') : activeChat));
+                  
+                  if (msg.id) {
+                    socket.emit('pin_message', { 
+                      messageId: msg.id, 
+                      room: roomKey, 
+                      roomKey: activeChat,
+                      otherUserId: activeChat !== 'home' ? activeChat : null 
+                    });
+                  }
 
-                  socket.emit('delete_message', { 
-                    messageId: contextMenu.msg.id, 
-                    room: roomKey,
-                    otherUserId: activeChat !== 'home' ? activeChat : null
-                  });
-
-                  // Optimistically remove locally
+                  // Optimistically toggle pin locally
                   setMessages(prev => {
                     const curr = prev[activeChat] || [];
                     return {
                       ...prev,
-                      [activeChat]: curr.filter(m => m.id !== contextMenu.msg.id)
+                      [activeChat]: curr.map(m => m.id === msg.id ? { ...m, is_pinned: !m.is_pinned } : m)
                     };
                   });
-
+                  
                   setContextMenu(null);
                 }}
-                style={{ background: 'none', border: 'none', padding: '10px 14px', textAlign: 'left', cursor: 'pointer', width: '100%', borderRadius: '10px', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', fontWeight: 600 }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
               >
-                <span>🗑️</span> Delete
+                <div className="context-menu-icon pin">
+                  {msg.is_pinned ? <PinOff size={16} /> : <Pin size={16} />}
+                </div>
+                <span>{msg.is_pinned ? 'Unpin message' : 'Pin message'}</span>
               </button>
-            )}
 
-            {/* 6. Save to Gallery */}
-            {contextMenu.msg.imageUrl && (
+              {/* 5. Save to Gallery / Image download */}
+              {msg.imageUrl && (
+                <button 
+                  className="context-menu-item"
+                  onClick={() => {
+                    fetch(msg.imageUrl)
+                      .then(res => res.blob())
+                      .then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `image-${Date.now()}.jpg`;
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+                      })
+                      .catch(err => console.error("Download failed:", err));
+                    setContextMenu(null);
+                  }}
+                >
+                  <div className="context-menu-icon download">
+                    <Download size={16} />
+                  </div>
+                  <span>Save to Gallery</span>
+                </button>
+              )}
+
+              {/* Delete Options Divider */}
+              <div className="context-menu-divider" />
+
+              {/* 6. Delete for Me */}
               <button 
-                onClick={() => {
-                  fetch(contextMenu.msg.imageUrl)
-                    .then(res => res.blob())
-                    .then(blob => {
-                      const url = window.URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `image-${Date.now()}.jpg`;
-                      document.body.appendChild(a);
-                      a.click();
-                      window.URL.revokeObjectURL(url);
-                      document.body.removeChild(a);
-                    })
-                    .catch(err => console.error("Download failed:", err));
-                  setContextMenu(null);
-                }}
-                style={{ background: 'none', border: 'none', padding: '10px 14px', textAlign: 'left', cursor: 'pointer', width: '100%', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: '#1e293b', fontWeight: 600 }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
+                className="context-menu-item danger"
+                onClick={handleDeleteForMe}
               >
-                <span>💾</span> Save to Gallery
+                <div className="context-menu-icon delete">
+                  <Trash2 size={16} />
+                </div>
+                <span>Delete for me</span>
               </button>
-            )}
-          </div>
-        </>
-      )}
+
+              {/* 7. Delete for Everyone */}
+              {canDeleteForEveryone && (
+                <button 
+                  className="context-menu-item danger"
+                  onClick={handleDeleteForEveryone}
+                >
+                  <div className="context-menu-icon delete" style={{ background: 'rgba(239, 68, 68, 0.22)', color: '#ef4444' }}>
+                    <Users size={16} />
+                  </div>
+                  <span>Delete for everyone</span>
+                </button>
+              )}
+            </div>
+          </>
+        );
+      })()}
 
       {forwardMsg && (
         <ForwardModal 

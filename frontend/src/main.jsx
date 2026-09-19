@@ -54,8 +54,10 @@ class ErrorBoundary extends Component {
             backdropFilter: 'blur(16px)',
             boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
           }}>
-            <div style={{ fontSize: '3rem', marginBottom: '12px' }}>💬</div>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '0 0 10px 0' }}>Chit Chat Telugu</h2>
+            <div style={{ marginBottom: '16px' }}>
+              <img src="/logo-icon.svg" alt="Xorachat" style={{ width: '80px', height: '52px', objectFit: 'contain', filter: 'drop-shadow(0 6px 16px rgba(139, 92, 246, 0.4))' }} />
+            </div>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '0 0 10px 0' }}>Xorachat</h2>
             <p style={{ color: '#94a3b8', fontSize: '0.92rem', lineHeight: '1.5', margin: '0 0 20px 0' }}>
               The application encountered a temporary display issue. Tap below to refresh and load the latest version.
             </p>

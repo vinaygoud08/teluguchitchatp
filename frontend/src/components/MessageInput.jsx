@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
@@ -29,25 +29,99 @@ const STICKERS = [
 
 const MessageInput = ({ socket, activeChat, isGroup, activeGroup, onInitiateCall, replyingTo, onClearReply, otherUser, onOptimisticMessage }) => {
   const { user, token } = useAuth();
+  const { chatSettings } = useSettings();
   const [text, setText] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showStickerPicker, setShowStickerPicker] = useState(false);
   const fileInputRef = useRef(null);
+  const textareaRef = useRef(null);
 
   const isRestrictedByAdmin = isGroup && activeGroup?.send_messages_permission === 'admins_only' && activeGroup?.myRole !== 'admin';
+  const enterToSend = chatSettings?.enterToSend !== false;
+  const isSelfChat = user && (activeChat === user.id || activeChat === user._id);
+
+  const adjustTextareaHeight = () => {
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = 'auto';
+      const scrollHeight = el.scrollHeight;
+      const maxHeight = 130;
+      el.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
+    }
+  };
+
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [text]);
+
+  const typingTimeoutRef = useRef(null);
+
+  const getChatRoom = () => {
+    if (activeChat === 'home') return 'home_chat';
+    if (isGroup) return activeChat;
+    if (isSelfChat) {
+      const myId = user?.id || user?._id;
+      return `${myId}_${myId}`;
+    }
+    const isStranger = activeChat?.startsWith('stranger_');
+    return isStranger ? activeChat : [user?.id || user?._id, activeChat].sort().join('_');
+  };
+
+  const emitTyping = () => {
+    if (!socket || !user || isSelfChat || activeChat === 'home') return;
+    const room = getChatRoom();
+    socket.emit('typing', {
+      room,
+      userId: user.id || user._id,
+      username: user.username,
+      recipientId: isGroup ? null : activeChat,
+      isGroup
+    });
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      emitStopTyping();
+    }, 2000);
+  };
+
+  const emitStopTyping = () => {
+    if (!socket || !user || isSelfChat || activeChat === 'home') return;
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    const room = getChatRoom();
+    socket.emit('stop_typing', {
+      room,
+      userId: user.id || user._id,
+      username: user.username,
+      recipientId: isGroup ? null : activeChat,
+      isGroup
+    });
+  };
+
+  const handleTextChange = (e) => {
+    setText(e.target.value);
+    if (e.target.value.trim().length > 0) {
+      emitTyping();
+    } else {
+      emitStopTyping();
+    }
+  };
 
   const handleSendText = () => {
     if (!text.trim() || isRestrictedByAdmin) return;
+    emitStopTyping();
     sendMessage({ text: text.trim() });
     setText('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
   };
 
   const sendMessage = async (content) => {
     if (isRestrictedByAdmin) return;
     let messageText = content.text;
     
-    // Encrypt private messages if otherUser has a public key
-    if (!isGroup && activeChat !== 'home' && otherUser?.public_key && messageText) {
+    // Encrypt private messages if otherUser has a public key (and not in self-chat)
+    if (!isGroup && activeChat !== 'home' && !isSelfChat && otherUser?.public_key && messageText) {
       try {
         messageText = await encryptMessage(messageText, otherUser.public_key);
       } catch (err) {
@@ -77,6 +151,10 @@ const MessageInput = ({ socket, activeChat, isGroup, activeGroup, onInitiateCall
       room = 'home_chat';
     } else if (isGroup) {
       room = activeChat;
+    } else if (isSelfChat) {
+      const myId = user.id || user._id;
+      room = `${myId}_${myId}`;
+      recipientId = myId;
     } else {
       const isStranger = activeChat.startsWith('stranger_');
       room = isStranger ? activeChat : [user?.id || user?._id, activeChat].sort().join('_');
@@ -116,14 +194,19 @@ const MessageInput = ({ socket, activeChat, isGroup, activeGroup, onInitiateCall
     }
   };
 
-  const { chatSettings } = useSettings();
-  const enterToSend = chatSettings?.enterToSend !== false;
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
       if (enterToSend) {
-        e.preventDefault();
-        handleSendText();
+        if (!e.shiftKey) {
+          e.preventDefault();
+          handleSendText();
+        } else {
+          // Shift+Enter creates a newline naturally; auto-adjust height
+          setTimeout(adjustTextareaHeight, 0);
+        }
+      } else {
+        // Enter creates a newline naturally when enterToSend is disabled
+        setTimeout(adjustTextareaHeight, 0);
       }
     }
   };
@@ -137,7 +220,7 @@ const MessageInput = ({ socket, activeChat, isGroup, activeGroup, onInitiateCall
     const file = e.target.files[0];
     if (!file || isRestrictedByAdmin) return;
 
-    const isViewOnce = window.confirm("Send this image as 'View Once'?");
+    const isViewOnce = isSelfChat ? false : window.confirm("Send this image as 'View Once'?");
 
     const formData = new FormData();
     formData.append('image', file);
@@ -173,6 +256,7 @@ const MessageInput = ({ socket, activeChat, isGroup, activeGroup, onInitiateCall
 
   const onEmojiClick = (emojiObject) => {
     setText(prev => prev + emojiObject.emoji);
+    setTimeout(adjustTextareaHeight, 0);
   };
 
   const handleStickerClick = () => {
@@ -214,13 +298,14 @@ const MessageInput = ({ socket, activeChat, isGroup, activeGroup, onInitiateCall
           <Smile size={20} />
         </button>
 
-        <input 
-          type="text" 
+        <textarea 
+          ref={textareaRef}
+          rows={1}
           className="chat-input" 
-          placeholder={isGuestInPrivate ? "Login to chat privately" : "Type a message..."} 
+          placeholder={isGuestInPrivate ? "Login to chat privately" : (isSelfChat ? "Write a note to yourself..." : "Type a message...")} 
           value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyPress={handleKeyPress}
+          onChange={handleTextChange}
+          onKeyDown={handleKeyDown}
           disabled={isGuestInPrivate}
         />
         

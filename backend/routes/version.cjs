@@ -5,7 +5,7 @@ const LATEST_RELEASE = {
   version: '2.4.0',
   buildNumber: 24,
   releaseDate: 'August 26, 2026',
-  title: 'Chit Chat Telugu v2.4.0 — Super AI & Responsive Update 🚀',
+  title: 'Xorachat v2.4.0 — Super AI & Responsive Update 🚀',
   changelog: [
     '🤖 Full-Screen Telugu & English AI Assistant (Meta AI style)',
     '💬 Natural message layout & bubble expansion (no awkward line dividing)',

@@ -239,7 +239,7 @@ function CreateGroupModal({ onClose, onGroupCreated }) {
                       </div>
                       <div style={{ flex: 1, borderBottom: '1px solid #222e35', paddingBottom: '10px' }}>
                         <div style={{ color: '#e9edef', fontWeight: 600, fontSize: '0.95rem' }}>{f.username}</div>
-                        <div style={{ color: '#8696a0', fontSize: '0.8rem', marginTop: '2px' }}>Hey there! I am using Chit Chat</div>
+                        <div style={{ color: '#8696a0', fontSize: '0.8rem', marginTop: '2px' }}>Hey there! I am using Xorachat</div>
                       </div>
                     </div>
                   );

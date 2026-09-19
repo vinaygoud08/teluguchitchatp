@@ -4,29 +4,24 @@ const WelcomeScreen = ({ onSignUp, onLogin }) => {
   return (
     <div className="modal-overlay">
       <div className="modal-content" style={{ textAlign: 'center', padding: '40px 24px' }}>
-        <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'center' }}>
-          <div style={{
-            width: '64px',
-            height: '64px',
-            background: 'linear-gradient(135deg, var(--brand-400), var(--coral-500))',
-            borderRadius: '16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontSize: '1.8rem',
-            fontWeight: 'bold',
-            boxShadow: 'var(--shadow-md)'
-          }}>
-            CC
-          </div>
+        <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
+          <img
+            src="/logo.png"
+            alt="Xorachat"
+            style={{
+              width: '180px',
+              height: 'auto',
+              objectFit: 'contain',
+              filter: 'drop-shadow(0 10px 24px rgba(139, 92, 246, 0.45))'
+            }}
+          />
         </div>
 
         <h2 className="modal-title" style={{ fontSize: '1.6rem', marginBottom: '12px' }}>
           Free voice & video calls
         </h2>
         <p className="warning-text" style={{ marginBottom: '32px', fontSize: '0.95rem' }}>
-          Join Chit Chat Telugu to connect with friends and the community.
+          Join Xorachat to connect with friends and the community.
         </p>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

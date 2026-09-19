@@ -512,4 +512,38 @@ router.get('/online', verifyToken, (req, res) => {
   res.json(onlineList);
 });
 
+// POST /api/users/invite
+const { sendInviteEmail } = require('../utils/email.cjs');
+
+router.post('/invite', async (req, res) => {
+  try {
+    const { email, senderName } = req.body;
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({ msg: 'Please provide a valid email address' });
+    }
+
+    let resolvedSender = senderName || 'A friend';
+    const token = req.header('x-auth-token');
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecretkey_for_chitchat');
+        if (decoded && decoded.user) {
+          const { data: u } = await supabase.from('users').select('username').eq('id', decoded.user.id).single();
+          if (u && u.username) resolvedSender = u.username;
+        }
+      } catch (e) {}
+    }
+
+    const result = await sendInviteEmail(email.trim().toLowerCase(), resolvedSender);
+    return res.json({ 
+      success: true, 
+      msg: `Invitation sent successfully to ${email.trim()}`,
+      simulated: Boolean(result?.simulated)
+    });
+  } catch (err) {
+    console.error('Error in /invite endpoint:', err);
+    return res.status(500).json({ msg: 'Failed to send invitation email', error: err.message });
+  }
+});
+
 module.exports = router;

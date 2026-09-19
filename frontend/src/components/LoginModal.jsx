@@ -116,25 +116,16 @@ const LoginModal = ({ onClose, onForgotPassword, onRegister, onGuestLogin }) => 
 
         {/* Modal Header */}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <div style={{ 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            width: '52px', 
-            height: '52px', 
-            background: 'linear-gradient(135deg, #5046e5 0%, #7c6ff7 100%)', 
-            borderRadius: '16px',
-            color: '#ffffff',
-            boxShadow: '0 8px 18px rgba(80, 70, 229, 0.35)',
-            marginBottom: '12px'
-          }}>
-            <LogIn size={26} />
-          </div>
+          <img 
+            src="/logo.png" 
+            alt="Xorachat" 
+            style={{ width: '150px', height: 'auto', objectFit: 'contain', marginBottom: '10px', filter: 'drop-shadow(0 6px 16px rgba(139, 92, 246, 0.35))' }} 
+          />
           <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#0f172a', margin: '0 0 6px 0', letterSpacing: '-0.3px' }}>
             Welcome Back
           </h2>
           <p style={{ fontSize: '0.86rem', color: '#64748b', margin: 0 }}>
-            Sign in to continue connecting on Chit Chat Telugu
+            Sign in to continue connecting on Xorachat
           </p>
         </div>
 

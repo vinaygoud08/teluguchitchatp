@@ -186,25 +186,16 @@ const RegisterModal = ({ onClose, onBackToLogin }) => {
 
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-          <div style={{ 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            width: '52px', 
-            height: '52px', 
-            background: 'linear-gradient(135deg, #5046e5 0%, #7c6ff7 100%)', 
-            borderRadius: '16px',
-            color: '#ffffff',
-            boxShadow: '0 8px 18px rgba(80, 70, 229, 0.35)',
-            marginBottom: '10px'
-          }}>
-            <UserPlus size={26} />
-          </div>
+          <img 
+            src="/logo.png" 
+            alt="Xorachat" 
+            style={{ width: '150px', height: 'auto', objectFit: 'contain', marginBottom: '8px', filter: 'drop-shadow(0 6px 16px rgba(139, 92, 246, 0.35))' }} 
+          />
           <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: '0 0 4px 0' }}>
             Create Account
           </h2>
           <p style={{ fontSize: '0.84rem', color: '#64748b', margin: 0 }}>
-            Join Chit Chat Telugu and connect with friends
+            Join Xorachat and connect with friends
           </p>
         </div>
 
@@ -214,7 +205,7 @@ const RegisterModal = ({ onClose, onBackToLogin }) => {
               <CheckCircle2 size={48} />
             </div>
             <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0f172a', marginBottom: '8px' }}>
-              Welcome to Chit Chat Telugu!
+              Welcome to Xorachat!
             </h3>
             <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '20px' }}>
               {successMsg}

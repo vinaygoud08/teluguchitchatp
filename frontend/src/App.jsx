@@ -21,6 +21,7 @@ import WelcomeScreen from './components/WelcomeScreen';
 import AiBotModal from './components/AiBotModal';
 import UpdatesModal from './components/UpdatesModal';
 import ChatsMenu from './components/ChatsMenu';
+import InviteModal from './components/InviteModal';
 import { Bot } from 'lucide-react';
 import { LanguageProvider } from './context/LanguageContext';
 import { useSettings } from './context/SettingsContext';
@@ -43,6 +44,7 @@ function App() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showChats, setShowChats] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const [showLanguage, setShowLanguage] = useState(false);
   const [showAiBot, setShowAiBot] = useState(false);
   const [showUpdatesModal, setShowUpdatesModal] = useState(false);
@@ -571,9 +573,12 @@ function App() {
   return (
     <AuthContext.Provider value={{ user, token, login, logout, setUser }}>
       <LanguageProvider>
-        <div className={`app-container ${activeChat ? 'in-chat' : ''}`}>
+        <div className="app-container">
           <header className="app-header">
-            <div className="brand">Chit Chat Telugu</div>
+            <div className="brand" onClick={() => handleSetActiveChat(null)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <img src="/logo-icon.png" alt="Xorachat" style={{ height: '32px', width: 'auto', objectFit: 'contain' }} />
+              <span className="brand-text-grad">xorachat</span>
+            </div>
             <div className="auth-buttons">
               {user ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -676,9 +681,13 @@ function App() {
                 <div className="no-chat-selected">
                   <div className="no-chat-card">
                     <div className="no-chat-logo">
-                      <div className="no-chat-icon">💬</div>
+                      <img 
+                        src="/logo.png" 
+                        alt="Xorachat" 
+                        style={{ width: '220px', height: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 14px 28px rgba(139, 92, 246, 0.45))' }} 
+                      />
                     </div>
-                    <h2>Chit Chat Telugu</h2>
+                    <h2>Welcome to Xorachat</h2>
                     <p>Select a conversation from the left to start chatting, make secure encrypted calls, or meet new people with Stranger Chat!</p>
                     <div className="no-chat-features">
                       <span>🔒 End-to-End Encrypted</span>
@@ -733,7 +742,14 @@ function App() {
               onOpenPrivacy={() => { setShowSettings(false); setShowPrivacy(true); }}
               onOpenChats={() => { setShowSettings(false); setShowChats(true); }}
               onOpenLanguage={() => { setShowSettings(false); setShowLanguage(true); }}
+              onOpenInvite={() => { setShowSettings(false); setShowInviteModal(true); }}
               onCheckUpdate={() => { setShowSettings(false); setShowUpdatesModal(true); }}
+            />
+          )}
+
+          {showInviteModal && (
+            <InviteModal
+              onClose={() => setShowInviteModal(false)}
             />
           )}
 

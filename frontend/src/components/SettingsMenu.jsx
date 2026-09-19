@@ -1,7 +1,7 @@
 import React from 'react';
 import './SettingsMenu.css';
 
-function SettingsMenu({ onClose, onOpenAccount, onOpenNotifications, onOpenPrivacy, onOpenChats, onOpenLanguage, onCheckUpdate }) {
+function SettingsMenu({ onClose, onOpenAccount, onOpenNotifications, onOpenPrivacy, onOpenChats, onOpenLanguage, onCheckUpdate, onOpenInvite }) {
   return (
     <div className="settings-modal-overlay" onClick={onClose}>
       <div className="settings-modal-content" onClick={e => e.stopPropagation()}>
@@ -38,6 +38,13 @@ function SettingsMenu({ onClose, onOpenAccount, onOpenNotifications, onOpenPriva
             <div className="settings-item-title">Language</div>
             <div className="settings-item-subtitle">Auto</div>
           </div>
+
+          <div className="settings-item" onClick={onOpenInvite} style={{ cursor: 'pointer' }}>
+            <div className="settings-item-title" style={{ color: '#38bdf8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              💌 Invite a Friend
+            </div>
+            <div className="settings-item-subtitle">Send email invite to chat & call for free</div>
+          </div>
           
           <div className="settings-item">
             <div className="settings-item-title">Help & Feedback</div>
@@ -49,7 +56,7 @@ function SettingsMenu({ onClose, onOpenAccount, onOpenNotifications, onOpenPriva
           </div>
           
           <div className="settings-item" onClick={onCheckUpdate}>
-            <div className="settings-item-title">About Chit Chat Telugu</div>
+            <div className="settings-item-title">About Xorachat</div>
             <div className="settings-item-subtitle">v2.4.0</div>
           </div>
         </div>

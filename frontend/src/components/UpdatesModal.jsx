@@ -74,71 +74,64 @@ function UpdatesModal({ onClose }) {
   const hasUpdate = updateInfo?.version && updateInfo.version !== installedVersion;
 
   return (
-    <div className="modal-overlay" onClick={onClose} style={{ zIndex: 10000 }}>
+    <div className="settings-modal-overlay" onClick={onClose} style={{ zIndex: 100000 }}>
       <div 
-        className="modal-content" 
+        className="settings-modal-content" 
         onClick={e => e.stopPropagation()}
         style={{
-          maxWidth: '520px',
-          width: '94%',
-          background: 'linear-gradient(180deg, #1e1b4b 0%, #0f172a 100%)',
-          color: '#ffffff',
+          maxWidth: '480px',
+          width: '92%',
+          background: 'linear-gradient(135deg, #0d0d18 0%, #1e1b4b 100%)',
+          border: '1px solid rgba(129, 140, 248, 0.25)',
           borderRadius: '24px',
-          padding: '0',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(99, 102, 241, 0.2)',
+          color: '#ffffff',
           overflow: 'hidden',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
-          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.55)'
+          animation: 'fadeUp 0.25s ease-out'
         }}
       >
         {/* Header */}
         <div style={{
-          padding: '16px 20px',
-          background: 'rgba(255, 255, 255, 0.05)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between'
+          justifyContent: 'space-between',
+          padding: '20px 22px',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          background: 'rgba(255, 255, 255, 0.02)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <button
-              onClick={onClose}
-              style={{
-                background: 'rgba(255, 255, 255, 0.1)',
-                border: 'none',
-                borderRadius: '50%',
-                width: '36px',
-                height: '36px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                cursor: 'pointer'
-              }}
-            >
-              <ArrowLeft size={18} />
-            </button>
-            <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-              App Updates <Sparkles size={16} color="#fde047" />
-            </h3>
-          </div>
-
-          <button
-            onClick={fetchUpdateInfo}
-            disabled={loading}
-            title="Check for updates again"
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#93c5fd',
+            <div style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              fontSize: '0.85rem',
+              justifyContent: 'center'
+            }}>
+              <Rocket size={20} color="#ffffff" />
+            </div>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700 }}>Check for Updates</h3>
+              <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Xorachat Client Version</div>
+            </div>
+          </div>
+          <button 
+            onClick={onClose}
+            style={{
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: 'none',
+              borderRadius: '50%',
+              width: '32px',
+              height: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#94a3b8',
               cursor: 'pointer'
             }}
           >
-            <RefreshCw size={15} style={{ animation: loading ? 'spin 1s infinite linear' : 'none' }} />
-            <span>Check</span>
+            <X size={18} />
           </button>
         </div>
 
@@ -148,7 +141,7 @@ function UpdatesModal({ onClose }) {
             <div style={{ textAlign: 'center', padding: '40px 20px' }}>
               <RefreshCw size={36} color="#818cf8" style={{ animation: 'spin 1s infinite linear', marginBottom: '16px' }} />
               <div style={{ fontSize: '1.05rem', fontWeight: 600 }}>Checking for updates...</div>
-              <div style={{ fontSize: '0.82rem', color: '#94a3b8', marginTop: '6px' }}>Connecting to Chit Chat Telugu servers</div>
+              <div style={{ fontSize: '0.82rem', color: '#94a3b8', marginTop: '6px' }}>Connecting to Xorachat servers</div>
             </div>
           ) : (
             <>

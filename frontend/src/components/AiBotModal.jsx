@@ -306,7 +306,7 @@ const LOCAL_FALLBACK_REPLIES = [
   },
   {
     keywords: ['feature', 'features', 'app', 'help', 'call', 'video', 'story', 'stranger'],
-    reply: "📱 Chit Chat Telugu ఫీచర్లు:\n1. 💬 **Private Chat**: ఎండ్-టు-ఎండ్ ఎన్క్రిప్షన్‌తో చాటింగ్.\n2. 📞 **Audio & Video Calls**: హై క్వాలిటీ కాల్స్.\n3. 🕵️ **Stranger Chat**: అపరిచితులతో చాట్.\n4. 📺 **Stories**: స్టేటస్ వీడియోలు & ప్రొఫైల్ సాంగ్స్.\n5. 👥 **Groups**: స్నేహితులతో గ్రూప్స్!"
+    reply: "📱 Xorachat ఫీచర్లు:\n1. 💬 **Private Chat**: ఎండ్-టు-ఎండ్ ఎన్క్రిప్షన్‌తో చాటింగ్.\n2. 📞 **Audio & Video Calls**: హై క్వాలిటీ కాల్స్.\n3. 🕵️ **Stranger Chat**: అపరిచితులతో చాట్.\n4. 📺 **Stories**: స్టేటస్ వీడియోలు & ప్రొఫైల్ సాంగ్స్.\n5. 👥 **Groups**: స్నేహితులతో గ్రూప్స్!"
   }
 ];
 
@@ -548,7 +548,7 @@ function AiBotModal({ onClose }) {
     } catch (err) {
       const clean = query.toLowerCase();
       let matched = LOCAL_FALLBACK_REPLIES.find(r => r.keywords.some(k => clean.includes(k)));
-      const replyText = matched ? matched.reply : "నమస్కారం! నేను మీ Chit Chat Telugu AI బోట్ ని. మీతో మాట్లాడటం చాలా సంతోషంగా ఉంది! 🤖🌟";
+      const replyText = matched ? matched.reply : "నమస్కారం! నేను మీ Xorachat AI బోట్ ని. మీతో మాట్లాడటం చాలా సంతోషంగా ఉంది! 🤖🌟";
 
       setTimeout(() => {
         setMessages(prev => [
@@ -657,7 +657,7 @@ function AiBotModal({ onClose }) {
             }}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.22)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
-            title="Back to Chit Chat"
+            title="Back to Xorachat"
           >
             <ArrowLeft size={22} />
           </button>

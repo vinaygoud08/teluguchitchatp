@@ -107,6 +107,15 @@ class RealtimeBridge {
         .on('broadcast', { event: 'chat_cleared' }, ({ payload }) => {
           this.trigger('chat_cleared', payload);
         })
+        .on('broadcast', { event: 'typing' }, ({ payload }) => {
+          this.trigger('typing', payload);
+        })
+        .on('broadcast', { event: 'stop_typing' }, ({ payload }) => {
+          this.trigger('stop_typing', payload);
+        })
+        .on('broadcast', { event: 'message_seen' }, ({ payload }) => {
+          this.trigger('message_seen', payload);
+        })
         .subscribe();
 
       // 3. Group Call Signaling Channel
@@ -202,6 +211,7 @@ class RealtimeBridge {
       'connect', 'disconnect',
       'receive_message', 'receive_private_message', 'receive_group_message',
       'chat_cleared', 'message_deleted', 'message_pinned',
+      'typing', 'stop_typing', 'message_seen',
       'call_incoming', 'call_accepted', 'ice_candidate', 'call_ended', 'call_declined',
       'stranger_match', 'stranger_left', 'user_status_change',
       'group_call_status_update', 'group_call_ended', 'group_call_joined',
@@ -295,6 +305,14 @@ class RealtimeBridge {
           this.chatChannel.send({
             type: 'broadcast',
             event: event === 'delete_message' ? 'message_deleted' : event === 'pin_message' ? 'message_pinned' : 'chat_cleared',
+            payload: data
+          });
+        }
+      } else if (['typing', 'stop_typing', 'message_seen'].includes(event)) {
+        if (this.chatChannel) {
+          this.chatChannel.send({
+            type: 'broadcast',
+            event,
             payload: data
           });
         }

@@ -171,7 +171,9 @@ io.on('connection', (socket) => {
   socket.on('delete_message', async (data) => {
     try {
       if (data.messageId) {
-        await supabase.from('messages').delete().eq('id', data.messageId).catch(() => {});
+        try {
+          await supabase.from('messages').delete().eq('id', data.messageId);
+        } catch (e) {}
         if (data.room) {
           io.to(data.room).emit('message_deleted', { messageId: data.messageId });
         }
@@ -182,6 +184,20 @@ io.on('connection', (socket) => {
       }
     } catch (err) {
       console.error('Error deleting message:', err);
+    }
+  });
+
+  socket.on('react_message', async (data) => {
+    try {
+      if (data.room) {
+        io.to(data.room).emit('message_reaction', data);
+      }
+      if (data.otherUserId) {
+        io.to(data.otherUserId).emit('message_reaction', data);
+      }
+      socket.emit('message_reaction', data);
+    } catch (err) {
+      console.error('Error handling react_message:', err);
     }
   });
 
@@ -588,7 +604,19 @@ if (process.env.NODE_ENV === 'production') {
   app.get(/^.*$/, (req, res) => {
     res.sendFile(path.resolve(__dirname, '../frontend', 'dist', 'index.html'));
   });
+} else {
+  app.get('/', (req, res) => {
+    res.status(200).send('<!doctype html><html><head><title>Xorachat</title></head><body><div id="root">Loading Xorachat...</div></body></html>');
+  });
 }
+
+// Health check endpoints
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', app: 'Xorachat Backend', time: new Date().toISOString() });
+});
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', app: 'Xorachat Backend', time: new Date().toISOString() });
+});
 
 // Auto-cleanup home chat messages older than 10 minutes
 setInterval(async () => {

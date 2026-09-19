@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 340" width="100%" height="100%">
+  <defs>
+    <!-- Gradient for left loop & ribbon -->
+    <linearGradient id="purpleGradLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#581c87" />
+      <stop offset="30%" stop-color="#7c3aed" />
+      <stop offset="70%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#a855f7" />
+    </linearGradient>
+    
+    <!-- Gradient for right loop & ribbon -->
+    <linearGradient id="purpleGradRight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed" />
+      <stop offset="40%" stop-color="#a855f7" />
+      <stop offset="80%" stop-color="#c026d3" />
+      <stop offset="100%" stop-color="#d946ef" />
+    </linearGradient>
+
+    <!-- Bottom text gradient -->
+    <linearGradient id="xoraTextGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3b0764" />
+      <stop offset="40%" stop-color="#581c87" />
+      <stop offset="70%" stop-color="#7c3aed" />
+      <stop offset="100%" stop-color="#a855f7" />
+    </linearGradient>
+
+    <filter id="glowEffect" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#a855f7" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <g filter="url(#glowEffect)">
+    <!-- Left Chat Bubble Infinity Half -->
+    <path d="M 215 48 C 150 48 100 95 100 155 C 100 188 114 216 138 234 L 112 272 C 146 264 172 252 188 242 C 218 252 248 234 270 195 C 235 145 235 48 215 48 Z" fill="url(#purpleGradLeft)" />
+
+    <!-- Left Bubble Hole -->
+    <ellipse cx="184" cy="150" rx="50" ry="52" fill="#0d0d12" />
+
+    <!-- Right Chat Bubble Infinity Half -->
+    <path d="M 325 48 C 390 48 440 95 440 155 C 440 188 426 216 402 234 L 428 272 C 394 264 368 252 352 242 C 322 252 292 234 270 195 C 305 145 305 48 325 48 Z" fill="url(#purpleGradRight)" />
+
+    <!-- Right Bubble Hole -->
+    <ellipse cx="356" cy="150" rx="50" ry="52" fill="#0d0d12" />
+
+    <!-- Front Overlapping Infinity Ribbon -->
+    <path d="M 215 48 C 248 48 270 115 270 195 C 270 115 292 48 325 48 C 348 48 375 62 390 85 C 352 70 315 92 288 135 C 265 170 242 215 210 232 C 182 244 145 238 126 216 C 152 238 206 226 242 180 C 270 142 285 88 260 88 C 232 88 212 135 186 172 C 160 210 120 220 100 155 C 100 95 150 48 215 48 Z" fill="url(#purpleGradLeft)" opacity="0.95" />
+  </g>
+
+  <!-- Typography: xorachat -->
+  <text x="270" y="328" font-family="'Space Grotesk', 'Montserrat', -apple-system, sans-serif" font-size="52" font-weight="900" fill="url(#xoraTextGrad)" text-anchor="middle" letter-spacing="-1px">
+    xora<tspan fill="#a855f7">chat</tspan>
+  </text>
+</svg>

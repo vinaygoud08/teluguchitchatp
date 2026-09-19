@@ -378,7 +378,47 @@ const UserSidebar = ({
             {user && (
               <>
                 <div className="sidebar-section-label">Private Messages</div>
-                {filteredFriends.length === 0 && (
+                
+                {/* Self Chat (Message Yourself / Notes) */}
+                {(!search || 'you message yourself notes'.includes(search.toLowerCase()) || (user.username || '').toLowerCase().includes(search.toLowerCase())) && (
+                  <div
+                    className={`sidebar-item self-chat-item ${activeChat === (user.id || user._id) ? 'active' : ''}`}
+                    onClick={() => setActiveChat(user.id || user._id)}
+                    style={{ background: activeChat === (user.id || user._id) ? undefined : 'rgba(124, 111, 247, 0.05)' }}
+                  >
+                    <div style={{ position: 'relative' }}>
+                      <Avatar userId={user.id || user._id} username={user.username} size={44} />
+                      <span className="online-dot" style={{ background: '#7c6ff7' }} title="You" />
+                    </div>
+                    <div className="sidebar-item-meta">
+                      <div className="sidebar-item-top" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span className="sidebar-item-name">{user.username}</span>
+                          <span style={{ 
+                            background: 'rgba(124, 111, 247, 0.2)', 
+                            color: '#a594fd', 
+                            fontSize: '0.68rem', 
+                            fontWeight: 700, 
+                            padding: '1px 6px', 
+                            borderRadius: '6px' 
+                          }}>
+                            You
+                          </span>
+                        </div>
+                        {recentConversations[user.id || user._id]?.lastMessageTime && (
+                          <span style={{ fontSize: '0.7rem', color: '#8e8ea0' }}>
+                            {new Date(recentConversations[user.id || user._id].lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        )}
+                      </div>
+                      <div className="sidebar-item-status" style={{ color: '#8e8ea0', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '190px' }}>
+                        {recentConversations[user.id || user._id]?.lastMessageText || 'Message yourself • Notes to self'}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {filteredFriends.length === 0 && search && !('you message yourself notes'.includes(search.toLowerCase()) || (user.username || '').toLowerCase().includes(search.toLowerCase())) && (
                   <div className="no-users">
                     {friends.length === 0
                       ? "No friends yet — add them from search!"

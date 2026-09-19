@@ -51,15 +51,15 @@ app.get('/', (req, res) => {
       return res.sendFile(p);
     }
   }
-  res.status(200).send('<!doctype html><html><head><title>Chit Chat Telugu</title></head><body><div id="root">Loading Chit Chat Telugu...</div></body></html>');
+  res.status(200).send('<!doctype html><html><head><title>Xorachat</title></head><body><div id="root">Loading Xorachat...</div></body></html>');
 });
 
 // Health check endpoints
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', app: 'Chit Chat Telugu Backend', time: new Date().toISOString() });
+  res.json({ status: 'ok', app: 'Xorachat Backend', time: new Date().toISOString() });
 });
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', app: 'Chit Chat Telugu Backend', time: new Date().toISOString() });
+  res.json({ status: 'ok', app: 'Xorachat Backend', time: new Date().toISOString() });
 });
 
 // Mount Routes with /api prefix
@@ -257,7 +257,9 @@ io.on('connection', (socket) => {
   socket.on('delete_message', async (data) => {
     try {
       if (data.messageId) {
-        await supabase.from('messages').delete().eq('id', data.messageId).catch(() => {});
+        try {
+          await supabase.from('messages').delete().eq('id', data.messageId);
+        } catch (e) {}
         if (data.room) {
           io.to(data.room).emit('message_deleted', { messageId: data.messageId });
         }
@@ -271,22 +273,57 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('pin_message', async (data) => {
+  socket.on('react_message', async (data) => {
     try {
-      if (data.messageId) {
-        const isPinned = !data.unpin;
-        await supabase.from('messages').update({ is_pinned: isPinned }).eq('id', data.messageId).catch(() => {});
-        const roomKey = data.roomKey || data.room;
-        if (data.room) {
-          io.to(data.room).emit('message_pinned', { messageId: data.messageId, isPinned, roomKey });
-        }
-        if (data.otherUserId) {
-          io.to(data.otherUserId).emit('message_pinned', { messageId: data.messageId, isPinned, roomKey });
-        }
-        socket.emit('message_pinned', { messageId: data.messageId, isPinned, roomKey });
+      if (data.room) {
+        io.to(data.room).emit('message_reaction', data);
+      }
+      if (data.otherUserId) {
+        io.to(data.otherUserId).emit('message_reaction', data);
+      }
+      socket.emit('message_reaction', data);
+    } catch (err) {
+      console.error('Error handling react_message:', err);
+    }
+  });
+
+  socket.on('typing', (data) => {
+    if (data.room) {
+      socket.to(data.room).emit('typing', data);
+    }
+    if (data.recipientId) {
+      socket.to(data.recipientId).emit('typing', data);
+    }
+  });
+
+  socket.on('stop_typing', (data) => {
+    if (data.room) {
+      socket.to(data.room).emit('stop_typing', data);
+    }
+    if (data.recipientId) {
+      socket.to(data.recipientId).emit('stop_typing', data);
+    }
+  });
+
+  socket.on('message_seen', async (data) => {
+    try {
+      if (data.room) {
+        socket.to(data.room).emit('message_seen', data);
+      }
+      if (data.otherUserId) {
+        socket.to(data.otherUserId).emit('message_seen', data);
+      }
+      if (data.room && data.viewerId) {
+        try {
+          await supabase
+            .from('messages')
+            .update({ is_seen: true })
+            .eq('room', data.room)
+            .neq('senderId', data.viewerId);
+        } catch (e) {}
       }
     } catch (err) {
-      console.error('Error pinning message:', err);
+      console.error('Error handling message_seen:', err);
     }
   });
 
