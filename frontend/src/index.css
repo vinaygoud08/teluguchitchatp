@@ -1735,15 +1735,45 @@ select.form-control { cursor: pointer; }
   inset: 0;
   width: 100%;
   height: 100%;
-  background: #06070d;
+  background: #030408;
   z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
-.remote-full-video {
+/* Ambient dynamic backdrop for letterboxed areas */
+.remote-ambient-backdrop {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  filter: blur(50px) brightness(0.45) saturate(1.4);
+  opacity: 0.85;
+  transform: scale(1.15);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.remote-full-video {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
   display: block;
+  transition: object-fit 0.25s ease;
+}
+
+.remote-full-video.fit-contain {
+  object-fit: contain;
+}
+
+.remote-full-video.fit-cover {
+  object-fit: cover;
 }
 
 /* Floating Picture-in-Picture Local Video */
@@ -1751,8 +1781,8 @@ select.form-control { cursor: pointer; }
   position: absolute;
   top: 90px;
   right: 18px;
-  width: 110px;
-  height: 155px;
+  width: 115px;
+  height: 160px;
   border-radius: 18px;
   overflow: hidden;
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7);
@@ -1760,7 +1790,13 @@ select.form-control { cursor: pointer; }
   background: #1e293b;
   z-index: 20;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.25s ease;
+}
+
+.local-pip-container.screen-share-pip {
+  width: 165px;
+  height: 105px;
+  aspect-ratio: 16 / 10;
 }
 
 .local-pip-container:hover {
@@ -1771,7 +1807,15 @@ select.form-control { cursor: pointer; }
 .local-pip-video {
   width: 100%;
   height: 100%;
+}
+
+.local-pip-video.fit-cover {
   object-fit: cover;
+}
+
+.local-pip-video.fit-contain {
+  object-fit: contain;
+  background: #0b0f19;
 }
 
 .local-pip-video.mirrored {

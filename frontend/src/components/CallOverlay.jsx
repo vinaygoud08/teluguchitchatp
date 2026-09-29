@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, Video, VideoOff, SwitchCamera, FlipHorizontal, Sparkles, ShieldCheck, ScreenShare, ScreenShareOff } from 'lucide-react';
+import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, Video, VideoOff, SwitchCamera, FlipHorizontal, Sparkles, ShieldCheck, ScreenShare, ScreenShareOff, Maximize2, Minimize2 } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 import Avatar from './Avatar';
 
@@ -46,6 +46,7 @@ const CallOverlay = ({
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [videoFitMode, setVideoFitMode] = useState('contain'); // 'contain' (Full frame, no crop) | 'cover' (Zoom fill)
   const [facingMode, setFacingMode] = useState('user');
   const [isMirrored, setIsMirrored] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(false);
@@ -57,6 +58,7 @@ const CallOverlay = ({
   const localStreamRef = useRef(null);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
+  const remoteVideoBackdropRef = useRef(null);
   const remoteAudioRef = useRef(null);
   const audioCtxRef = useRef(null);
   const iceCandidateQueue = useRef([]);
@@ -333,6 +335,9 @@ const CallOverlay = ({
       // Bind to remote video element if video
       if (remoteVideoRef.current && (event.track.kind === 'video' || callType === 'video')) {
         remoteVideoRef.current.srcObject = stream;
+        if (remoteVideoBackdropRef.current) {
+          remoteVideoBackdropRef.current.srcObject = stream;
+        }
         remoteVideoRef.current.play().catch(e => {
           console.log("Remote video play deferred:", e);
           setAudioFailed(true);
@@ -462,6 +467,9 @@ const CallOverlay = ({
     }
     if (remoteVideoRef.current) {
       remoteVideoRef.current.srcObject = null;
+    }
+    if (remoteVideoBackdropRef.current) {
+      remoteVideoBackdropRef.current.srcObject = null;
     }
     if (remoteAudioRef.current) {
       remoteAudioRef.current.srcObject = null;
@@ -715,18 +723,33 @@ const CallOverlay = ({
     <div className={`call-overlay-modern ${callType === 'video' ? 'video-active' : 'audio-active'}`}>
       {/* Background Remote Media */}
       {callType === 'video' ? (
-        <div className="call-video-viewport">
+        <div 
+          className="call-video-viewport" 
+          onDoubleClick={() => setVideoFitMode(prev => prev === 'contain' ? 'cover' : 'contain')}
+          title="Double tap or click Fit/Fill button to change framing mode"
+        >
+          {/* Ambient blurred backdrop so letterbox spaces glow naturally matching the video stream */}
+          <video 
+            ref={remoteVideoBackdropRef} 
+            autoPlay 
+            playsInline 
+            muted 
+            webkit-playsinline="true"
+            className="remote-ambient-backdrop"
+          />
+
+          {/* Main Remote Video with aspect ratio containment - guarantees no cropped faces/screen */}
           <video 
             ref={remoteVideoRef} 
             autoPlay 
             playsInline 
             webkit-playsinline="true"
-            className="remote-full-video"
+            className={`remote-full-video ${videoFitMode === 'contain' ? 'fit-contain' : 'fit-cover'}`}
           />
 
           {/* Floating Picture-in-Picture Local Video */}
           <div 
-            className={`local-pip-container ${isVideoOff ? 'video-muted' : ''}`}
+            className={`local-pip-container ${isScreenSharing ? 'screen-share-pip' : ''} ${isVideoOff ? 'video-muted' : ''}`}
             onClick={() => setIsMirrored(prev => !prev)}
             title="Tap to toggle mirror view"
           >
@@ -736,7 +759,7 @@ const CallOverlay = ({
               playsInline 
               webkit-playsinline="true"
               muted 
-              className={`local-pip-video ${isMirrored ? 'mirrored' : ''}`}
+              className={`local-pip-video ${isMirrored && !isScreenSharing ? 'mirrored' : ''} ${isScreenSharing ? 'fit-contain' : 'fit-cover'}`}
               style={{ display: isVideoOff ? 'none' : 'block' }}
             />
             {isVideoOff && (
@@ -889,6 +912,17 @@ const CallOverlay = ({
                     >
                       <FlipHorizontal size={22} />
                       <span className="dock-subtext">Mirror</span>
+                    </button>
+
+                    {/* Fit / Fill Framing Toggle Button */}
+                    <button 
+                      type="button"
+                      className={`call-dock-btn icon-btn ${videoFitMode === 'contain' ? 'active-tint' : ''}`} 
+                      onClick={() => setVideoFitMode(prev => prev === 'contain' ? 'cover' : 'contain')} 
+                      title={videoFitMode === 'contain' ? "Fit: Showing Full Frame (Click to Zoom Fill)" : "Fill: Zoomed to Fill (Click to Fit Frame)"}
+                    >
+                      {videoFitMode === 'contain' ? <Minimize2 size={22} /> : <Maximize2 size={22} />}
+                      <span className="dock-subtext">{videoFitMode === 'contain' ? 'Fit' : 'Fill'}</span>
                     </button>
                   </>
                 )}
