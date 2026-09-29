@@ -476,7 +476,7 @@ function App() {
 
   const initiateCall = (type = 'audio') => {
     if (!user || activeChat === 'home') return;
-    const targetUser = users.find(u => u.id === activeChat);
+    const targetUser = (Array.isArray(users) ? users : []).find(u => (u.id || u._id) === activeChat);
     const targetUsername = targetUser ? targetUser.username : 'User';
 
     setCallSession({

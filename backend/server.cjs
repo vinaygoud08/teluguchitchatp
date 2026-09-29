@@ -375,32 +375,43 @@ io.on('connection', (socket) => {
   });
 
   socket.on('call_user', (data) => {
-    console.log(`[call_user] from: ${data.from} to: ${data.userToCall}`);
-    io.to(data.userToCall).emit('call_incoming', { 
-      signal: data.signalData, 
-      from: data.from, 
-      name: data.name,
-      callType: data.callType 
-    });
+    console.log(`[call_user] from: ${data?.from} to: ${data?.userToCall}`);
+    if (data && data.userToCall) {
+      io.to(String(data.userToCall)).emit('call_incoming', { 
+        signal: data.signalData, 
+        from: data.from, 
+        name: data.name, 
+        callType: data.callType 
+      });
+    }
   });
 
   socket.on('answer_call', (data) => {
-    console.log(`[answer_call] to: ${data.to}`);
-    io.to(data.to).emit('call_accepted', data.signal);
+    console.log(`[answer_call] to: ${data?.to}`);
+    if (data && data.to) {
+      io.to(String(data.to)).emit('call_accepted', data.signal);
+    }
   });
 
   socket.on('ice_candidate', (data) => {
-    console.log(`[ice_candidate] from: ${data.from} to: ${data.to}`);
-    io.to(data.to).emit('ice_candidate', { candidate: data.candidate, from: data.from });
+    console.log(`[ice_candidate] from: ${data?.from} to: ${data?.to}`);
+    if (data && data.to) {
+      io.to(String(data.to)).emit('ice_candidate', { candidate: data.candidate, from: data.from });
+    }
   });
 
   socket.on('end_call', (data) => {
-    console.log(`[end_call] to: ${data.to}`);
-    io.to(data.to).emit('call_ended');
+    console.log(`[end_call] to: ${data?.to}`);
+    if (data && data.to) {
+      io.to(String(data.to)).emit('call_ended');
+    }
   });
 
   socket.on('decline_call', (data) => {
-    io.to(data.to).emit('call_declined');
+    console.log(`[decline_call] to: ${data?.to}`);
+    if (data && data.to) {
+      io.to(String(data.to)).emit('call_declined');
+    }
   });
 
   // ================= GROUP CALL SIGNALING =================

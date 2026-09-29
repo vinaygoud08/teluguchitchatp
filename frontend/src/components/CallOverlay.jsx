@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, Video, VideoOff, SwitchCamera, FlipHorizontal, Sparkles, ShieldCheck } from 'lucide-react';
+import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, Video, VideoOff, SwitchCamera, FlipHorizontal, Sparkles, ShieldCheck, ScreenShare, ScreenShareOff } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 import Avatar from './Avatar';
 
@@ -45,6 +45,7 @@ const CallOverlay = ({
   const [callType, setCallType] = useState(initialCallType);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [facingMode, setFacingMode] = useState('user');
   const [isMirrored, setIsMirrored] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(false);
@@ -474,27 +475,35 @@ const CallOverlay = ({
   };
 
   const handleDecline = () => {
-    socket.emit('decline_call', { to: otherUser.id });
-    socket.emit('save_call_history', {
-      caller_id: otherUser.id,
-      callee_id: user.id,
-      status: 'declined',
-      duration_seconds: 0,
-      callType: callType
-    });
+    const targetId = otherUser?.id || otherUser?._id;
+    const myId = user?.id || user?._id;
+    if (targetId) {
+      socket.emit('decline_call', { to: targetId });
+      socket.emit('save_call_history', {
+        caller_id: targetId,
+        callee_id: myId,
+        status: 'declined',
+        duration_seconds: 0,
+        callType: callType
+      });
+    }
     onDeclineCall();
   };
 
   const handleHangUp = () => {
-    socket.emit('end_call', { to: otherUser.id || otherUser._id });
-    if (role === 'caller') {
-      socket.emit('save_call_history', {
-        caller_id: user.id || user._id,
-        callee_id: otherUser.id || otherUser._id,
-        status: callState === 'connected' ? 'completed' : 'missed',
-        duration_seconds: duration,
-        callType: callType
-      });
+    const targetId = otherUser?.id || otherUser?._id;
+    const myId = user?.id || user?._id;
+    if (targetId) {
+      socket.emit('end_call', { to: targetId });
+      if (role === 'caller') {
+        socket.emit('save_call_history', {
+          caller_id: myId,
+          callee_id: targetId,
+          status: callState === 'connected' ? 'completed' : 'missed',
+          duration_seconds: duration,
+          callType: callType
+        });
+      }
     }
     onHangUp();
   };
@@ -567,6 +576,118 @@ const CallOverlay = ({
     }
   };
 
+  const toggleScreenShare = async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+      alert("Screen sharing is not supported on this browser or device.");
+      return;
+    }
+
+    if (isScreenSharing) {
+      // Stop screen share and revert to camera / audio
+      try {
+        if (callType === 'video') {
+          const camStream = await getMediaStreamWithFallback(true);
+          const camTrack = camStream.getVideoTracks()[0];
+          const oldTrack = localStreamRef.current?.getVideoTracks()[0];
+          if (oldTrack) {
+            localStreamRef.current.removeTrack(oldTrack);
+            oldTrack.stop();
+          }
+          if (camTrack && localStreamRef.current) {
+            localStreamRef.current.addTrack(camTrack);
+          }
+          if (localVideoRef.current) {
+            localVideoRef.current.srcObject = localStreamRef.current;
+          }
+          if (peerConnectionRef.current && camTrack) {
+            const sender = peerConnectionRef.current.getSenders().find(s => s.track && s.track.kind === 'video');
+            if (sender) {
+              await sender.replaceTrack(camTrack);
+            }
+          }
+        } else {
+          const oldTrack = localStreamRef.current?.getVideoTracks()[0];
+          if (oldTrack) {
+            localStreamRef.current.removeTrack(oldTrack);
+            oldTrack.stop();
+          }
+          if (peerConnectionRef.current) {
+            const sender = peerConnectionRef.current.getSenders().find(s => s.track && s.track.kind === 'video');
+            if (sender) {
+              await sender.replaceTrack(null);
+            }
+          }
+        }
+        setIsScreenSharing(false);
+      } catch (err) {
+        console.error("Error reverting screen share:", err);
+        setIsScreenSharing(false);
+      }
+    } else {
+      // Start screen sharing
+      try {
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            cursor: 'always',
+            displaySurface: 'monitor'
+          },
+          audio: false
+        });
+        const screenTrack = screenStream.getVideoTracks()[0];
+        if (!screenTrack) return;
+
+        if (callType !== 'video') {
+          setCallType('video');
+        }
+
+        const oldTrack = localStreamRef.current?.getVideoTracks()[0];
+        if (oldTrack) {
+          localStreamRef.current.removeTrack(oldTrack);
+          oldTrack.stop();
+        }
+
+        if (localStreamRef.current) {
+          localStreamRef.current.addTrack(screenTrack);
+        } else {
+          localStreamRef.current = screenStream;
+        }
+
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = localStreamRef.current;
+          localVideoRef.current.play().catch(() => {});
+        }
+
+        if (peerConnectionRef.current) {
+          const senders = peerConnectionRef.current.getSenders();
+          const videoSender = senders.find(s => s.track && s.track.kind === 'video');
+          if (videoSender) {
+            await videoSender.replaceTrack(screenTrack);
+          } else {
+            peerConnectionRef.current.addTrack(screenTrack, localStreamRef.current);
+            const offer = await peerConnectionRef.current.createOffer();
+            await peerConnectionRef.current.setLocalDescription(offer);
+            socket.emit('call_user', {
+              userToCall: otherUser?.id || otherUser?._id,
+              signalData: offer,
+              from: user?.id || user?._id,
+              name: user?.username,
+              callType: 'video'
+            });
+          }
+        }
+
+        setIsScreenSharing(true);
+        setIsVideoOff(false);
+
+        screenTrack.onended = () => {
+          toggleScreenShare();
+        };
+      } catch (err) {
+        console.warn("Screen sharing cancelled or denied:", err);
+      }
+    }
+  };
+
   const toggleSpeaker = async () => {
     const el = remoteAudioRef.current || remoteVideoRef.current;
     if (!el) return;
@@ -624,7 +745,9 @@ const CallOverlay = ({
                 <span>Camera Off</span>
               </div>
             )}
-            <div className="local-pip-badge">You</div>
+            <div className="local-pip-badge">
+              {isScreenSharing ? '🖥️ Screen' : 'You'}
+            </div>
           </div>
         </div>
       ) : (
@@ -657,7 +780,7 @@ const CallOverlay = ({
           </div>
           <div className="call-top-chip">
             <ShieldCheck size={14} color="#22c55e" />
-            <span>{callType === 'video' ? 'HD Video' : 'HD Voice'}</span>
+            <span>{isScreenSharing ? 'Screen Share' : callType === 'video' ? 'HD Video' : 'HD Voice'}</span>
           </div>
         </div>
       </div>
@@ -680,7 +803,7 @@ const CallOverlay = ({
           
           <div className="call-subtitle-indicator">
             {callState === 'outgoing' && 'Waiting for response...'}
-            {callState === 'incoming' && 'Xorachat Call Request'}
+            {callState === 'incoming' && (callType === 'video' ? '📹 Incoming WhatsApp Video Call...' : '📞 Incoming Voice Call...')}
             {callState === 'connected' && `Call in progress • ${formatTime(duration)}`}
           </div>
 
@@ -706,17 +829,17 @@ const CallOverlay = ({
               type="button"
               className="call-dock-btn accept-btn" 
               onClick={onAcceptCall} 
-              title="Accept Call"
+              title={callType === 'video' ? "Join Video Call" : "Accept Call"}
             >
-              <Phone size={28} />
-              <span className="btn-label">Accept</span>
+              {callType === 'video' ? <Video size={30} /> : <Phone size={28} />}
+              <span className="btn-label">{callType === 'video' ? 'Join Video' : 'Accept'}</span>
             </button>
 
             <button 
               type="button"
               className="call-dock-btn decline-btn" 
               onClick={handleDecline} 
-              title="Decline Call"
+              title="Ignore / Decline Call"
             >
               <PhoneOff size={28} />
               <span className="btn-label">Decline</span>
@@ -769,6 +892,17 @@ const CallOverlay = ({
                     </button>
                   </>
                 )}
+
+                {/* Screen Share Button */}
+                <button 
+                  type="button"
+                  className={`call-dock-btn icon-btn ${isScreenSharing ? 'active-tint' : ''}`} 
+                  onClick={toggleScreenShare} 
+                  title={isScreenSharing ? "Stop Screen Sharing" : "Share Screen"}
+                >
+                  {isScreenSharing ? <ScreenShareOff size={22} /> : <ScreenShare size={22} />}
+                  <span className="dock-subtext">{isScreenSharing ? "Sharing" : "Screen"}</span>
+                </button>
 
                 {callType !== 'video' && (
                   <button 

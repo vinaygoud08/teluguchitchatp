@@ -22,6 +22,13 @@ class RealtimeBridge {
 
     this.listeners = new Map(); // event -> Set(callbacks)
     this.currentUser = null;
+    try {
+      const stored = localStorage.getItem('user');
+      if (stored && stored !== 'undefined' && stored !== 'null') {
+        this.currentUser = JSON.parse(stored);
+      }
+    } catch (e) {}
+
     this.signalingChannel = null;
     this.chatChannel = null;
     this.presenceChannel = null;
@@ -30,11 +37,24 @@ class RealtimeBridge {
 
     this.initSupabaseChannels();
     this.bridgeSocketEvents();
+
+    if (this.socket && typeof this.socket.on === 'function') {
+      this.socket.on('connect', () => {
+        const uId = this.currentUser?.id || this.currentUser?._id;
+        if (uId) {
+          this.socket.emit('join_user', String(uId));
+        }
+      });
+    }
   }
 
   setCurrentUser(user) {
     if (!user) return;
     this.currentUser = user;
+    const uId = user.id || user._id;
+    if (uId && this.socket && typeof this.socket.emit === 'function') {
+      this.socket.emit('join_user', String(uId));
+    }
     this.trackPresence(user);
   }
 
@@ -47,7 +67,9 @@ class RealtimeBridge {
 
       this.signalingChannel
         .on('broadcast', { event: 'call_user' }, ({ payload }) => {
-          if (this.currentUser && (payload.userToCall === this.currentUser.id || payload.userToCall === this.currentUser._id)) {
+          const myId = String(this.currentUser?.id || this.currentUser?._id || '');
+          const targetId = String(payload?.userToCall || '');
+          if (myId && targetId && myId === targetId) {
             this.trigger('call_incoming', {
               from: payload.from,
               name: payload.name,
@@ -57,12 +79,16 @@ class RealtimeBridge {
           }
         })
         .on('broadcast', { event: 'answer_call' }, ({ payload }) => {
-          if (this.currentUser && (payload.to === this.currentUser.id || payload.to === this.currentUser._id)) {
+          const myId = String(this.currentUser?.id || this.currentUser?._id || '');
+          const targetId = String(payload?.to || '');
+          if (myId && targetId && myId === targetId) {
             this.trigger('call_accepted', payload.signal);
           }
         })
         .on('broadcast', { event: 'ice_candidate' }, ({ payload }) => {
-          if (this.currentUser && (payload.to === this.currentUser.id || payload.to === this.currentUser._id)) {
+          const myId = String(this.currentUser?.id || this.currentUser?._id || '');
+          const targetId = String(payload?.to || '');
+          if (myId && targetId && myId === targetId) {
             this.trigger('ice_candidate', {
               from: payload.from,
               candidate: payload.candidate
@@ -70,12 +96,16 @@ class RealtimeBridge {
           }
         })
         .on('broadcast', { event: 'end_call' }, ({ payload }) => {
-          if (this.currentUser && (payload.to === this.currentUser.id || payload.to === this.currentUser._id)) {
+          const myId = String(this.currentUser?.id || this.currentUser?._id || '');
+          const targetId = String(payload?.to || '');
+          if (myId && targetId && myId === targetId) {
             this.trigger('call_ended', payload);
           }
         })
         .on('broadcast', { event: 'decline_call' }, ({ payload }) => {
-          if (this.currentUser && (payload.to === this.currentUser.id || payload.to === this.currentUser._id)) {
+          const myId = String(this.currentUser?.id || this.currentUser?._id || '');
+          const targetId = String(payload?.to || '');
+          if (myId && targetId && myId === targetId) {
             this.trigger('call_declined', payload);
           }
         })
@@ -257,9 +287,13 @@ class RealtimeBridge {
   }
 
   emit(event, data = {}) {
-    // 1. Emit on socket.io if connected
-    if (this.socket && this.socket.connected) {
-      this.socket.emit(event, data);
+    // 1. Emit on socket.io (socket.io handles buffering if connecting)
+    if (this.socket && typeof this.socket.emit === 'function') {
+      try {
+        this.socket.emit(event, data);
+      } catch (err) {
+        console.warn(`Socket emit error for ${event}:`, err);
+      }
     }
 
     // 2. Broadcast over Supabase Realtime Channels

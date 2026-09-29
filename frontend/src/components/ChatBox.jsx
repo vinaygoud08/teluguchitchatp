@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, memo } from 'react';
 import axios from 'axios';
 import MessageInput from './MessageInput';
 import { useAuth } from '../context/AuthContext';
-import { User, UserRound, CircleUser, Phone, Video, Search, MoreVertical, UserPlus, Info, LogOut, X, ChevronUp, ChevronDown, Reply, CornerUpRight, Copy, Pin, PinOff, Trash2, Download, Check, Users, CheckSquare } from 'lucide-react';
+import { User, UserRound, CircleUser, Phone, Video, Search, MoreVertical, UserPlus, Info, LogOut, X, ChevronUp, ChevronDown, Reply, CornerUpRight, Copy, Pin, PinOff, Trash2, Download, Check, Users, CheckSquare, ScreenShare } from 'lucide-react';
 import Avatar from './Avatar';
 import GroupInfoModal from './GroupInfoModal';
 import ImageViewerModal from './ImageViewerModal';
@@ -1144,6 +1144,7 @@ const ChatBox = ({
             <>
               <button className="chat-header-btn" onClick={() => setPendingCall('audio')} title="Voice Call"><Phone size={20} /></button>
               <button className="chat-header-btn" onClick={() => setPendingCall('video')} title="Video Call"><Video size={20} /></button>
+              <button className="chat-header-btn" onClick={() => setPendingCall('screen')} title="Screen Share"><ScreenShare size={20} /></button>
             </>
           )}
         </div>
@@ -1775,9 +1776,13 @@ const ChatBox = ({
       {pendingCall && (
         <div className="modal-overlay" style={{ zIndex: 9999 }} onClick={() => setPendingCall(null)}>
           <div className="modal-content" onClick={e => e.stopPropagation()} style={{ textAlign: 'center', padding: '24px', maxWidth: '320px' }}>
-            <h3 style={{ marginBottom: '15px', color: 'var(--brand-900)' }}>Start {pendingCall === 'video' ? 'Video' : 'Voice'} Call?</h3>
+            <h3 style={{ marginBottom: '15px', color: 'var(--brand-900)' }}>
+              Start {pendingCall === 'screen' ? 'Screen Share' : pendingCall === 'video' ? 'Video' : 'Voice'} Call?
+            </h3>
             <p style={{ marginBottom: '25px', color: 'var(--neutral-600)', fontSize: '0.95rem' }}>
-              Are you sure you want to call this user?
+              {pendingCall === 'screen' 
+                ? 'Are you sure you want to start a call and share your screen?'
+                : 'Are you sure you want to call this user?'}
             </p>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
               <button 
@@ -1788,12 +1793,13 @@ const ChatBox = ({
               </button>
               <button 
                 onClick={() => {
-                  onInitiateCall(pendingCall);
+                  onInitiateCall(pendingCall === 'screen' ? 'video' : pendingCall);
                   setPendingCall(null);
                 }}
                 style={{ padding: '10px 24px', background: 'var(--brand-500)', border: 'none', borderRadius: '24px', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600', boxShadow: 'var(--shadow-brand)' }}
               >
-                {pendingCall === 'video' ? <Video size={18} /> : <Phone size={18} />} Call
+                {pendingCall === 'screen' ? <ScreenShare size={18} /> : pendingCall === 'video' ? <Video size={18} /> : <Phone size={18} />} 
+                {pendingCall === 'screen' ? 'Share Screen' : 'Call'}
               </button>
             </div>
           </div>
